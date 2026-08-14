@@ -1,0 +1,2660 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Yourator 職場人生模擬器</title>
+<meta name="theme-color" content="#edf4ff">
+<meta name="description" content="從新鮮人到職涯終局，一場關於選擇的模擬。每一次擲骰、每一個決定，都會長成你的職涯。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f9fc;
+  --ink:#172033;
+  --dim:#667085;
+  --faint:#98a2b3;
+  --blue:#006bff;
+  --blue2:#4b8fff;
+  --teal:#12b8a6;
+  --gold:#d99318;
+  --rose:#df5b70;
+  --violet:#796cf2;
+  --glass:rgba(255,255,255,.90);
+  --glass2:#ffffff;
+  --line:#e3e9f2;
+  --line2:#edf1f6;
+  --blur:blur(18px) saturate(125%);
+  --r:20px;
+  --sans:'Noto Sans TC',-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
+  --disp:'Space Grotesk','Noto Sans TC',sans-serif;
+  --sh:0 18px 50px -32px rgba(26,58,115,.28);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+html{scroll-padding-top:190px}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+/* ---------- 極光背景 ---------- */
+body::before{
+  content:'';position:fixed;inset:-20%;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(48% 38% at 18% 8%, rgba(77,141,255,.34), transparent 62%),
+    radial-gradient(42% 34% at 88% 12%, rgba(169,139,255,.26), transparent 64%),
+    radial-gradient(56% 40% at 72% 88%, rgba(53,230,197,.20), transparent 66%),
+    radial-gradient(40% 30% at 12% 82%, rgba(255,201,120,.13), transparent 66%);
+  filter:blur(20px);
+  animation:drift 34s ease-in-out infinite alternate;
+}
+@keyframes drift{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(-2%,1.5%,0) scale(1.06)}
+  100%{transform:translate3d(2%,-2%,0) scale(1.02)}
+}
+/* 細噪點，讓玻璃有質地 */
+body::after{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion:reduce){ body::before{animation:none} }
+
+a{color:var(--blue2);text-decoration:none}
+b.up{color:var(--teal)} b.dn{color:var(--rose)} b.hl{color:var(--gold)}
+.mono{font-family:var(--disp);letter-spacing:.02em}
+
+/* ---------- 骨架 ---------- */
+#app{min-height:100dvh;display:flex;flex-direction:column}
+#shell{flex:1;display:flex;align-items:flex-start;justify-content:center;gap:18px;padding:0 14px 40px;width:100%;max-width:1440px;margin:0 auto;visibility:hidden}
+body.playing #shell{visibility:visible}
+#mid{flex:1;min-width:0;max-width:720px;display:flex;flex-direction:column}
+aside{display:none;width:266px;flex:none;padding-top:16px;position:sticky;top:12px;max-height:calc(100dvh - 24px);overflow-y:auto;scrollbar-width:none}
+aside::-webkit-scrollbar{display:none}
+aside.right{width:296px}
+@media(min-width:1080px){ aside{display:block} }
+@media(min-width:900px) and (max-width:1079px){ aside.right{display:block} }
+
+/* ---------- 玻璃基底 ---------- */
+.glass{
+  background:linear-gradient(157deg,rgba(255,255,255,.10),rgba(255,255,255,.038) 46%,rgba(255,255,255,.055));
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh), inset 0 1px 0 rgba(255,255,255,.16);
+}
+.glass-soft{
+  background:rgba(255,255,255,.045);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);
+  border:1px solid var(--line2);border-radius:14px;
+}
+
+/* ---------- 儀表板 ---------- */
+#board{position:sticky;top:0;z-index:40;margin:10px 0 14px;padding:14px 16px 13px;border-radius:22px;
+  padding-top:calc(14px + env(safe-area-inset-top,0px));
+  background:linear-gradient(157deg,rgba(24,32,58,.90),rgba(9,13,28,.93));
+  -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%)}
+#bd-top{display:flex;align-items:flex-start;gap:10px}
+#bd-id{min-width:0;flex:1}
+#bd-name{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:.01em;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bd-name em{font-style:normal;font-size:11.5px;font-weight:500;color:var(--gold);margin-left:8px;letter-spacing:.14em}
+#bd-role{font-size:12.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+#bd-co{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;font-weight:700;
+  padding:3px 11px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--line2);letter-spacing:.04em}
+#bd-co i{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px currentColor;flex:none}
+.icon-btn{width:38px;height:38px;flex:none;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.06);
+  color:var(--ink);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+.icon-btn:hover{background:rgba(255,255,255,.13);transform:translateY(-1px)}
+#bd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.cell{position:relative;padding:7px 6px 6px;border-radius:13px;text-align:center;background:rgba(255,255,255,.045);
+  border:1px solid var(--line2);overflow:hidden}
+.cell b{display:block;font-family:var(--disp);font-size:18px;font-weight:700;line-height:1.2;letter-spacing:-.01em}
+.cell span{display:block;font-size:9.5px;color:var(--dim);letter-spacing:.18em;margin-top:1px}
+.cell.c-ovr b{color:var(--blue2)} .cell.c-sal b{color:var(--gold)} .cell.c-grade b{color:var(--teal)}
+.cell.c-burn b{color:var(--ink)}
+.cell .bar{position:absolute;left:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--teal),var(--gold),var(--rose));transition:width .5s}
+#bd-strip{display:flex;gap:7px;overflow-x:auto;margin-top:11px;padding-bottom:2px;scrollbar-width:none}
+#bd-strip::-webkit-scrollbar{display:none}
+#bd-strip:empty{display:none}
+.chip{flex:none;font-family:var(--disp);font-size:11px;color:var(--dim);padding:3px 11px;border-radius:999px;
+  border:1px solid var(--line2);background:rgba(255,255,255,.035);white-space:nowrap;cursor:pointer;transition:.2s}
+.chip:hover{color:var(--ink);border-color:var(--line)}
+.chip.now{color:#06101f;background:linear-gradient(120deg,var(--gold),#ffe0ab);border-color:transparent;font-weight:700}
+
+/* ---------- 記錄卡 ---------- */
+#log{display:flex;flex-direction:column;gap:11px}
+.yr-block{display:flex;flex-direction:column;gap:11px}
+.yr-head{display:flex;align-items:center;gap:10px;margin-top:6px;font-family:var(--disp);font-size:12px;
+  letter-spacing:.24em;color:var(--dim);cursor:pointer;user-select:none}
+.yr-head::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 12px var(--blue);flex:none}
+.yr-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.yr-block.collapsed .yr-body{display:none}
+.yr-block.collapsed .yr-head{opacity:.42;font-size:11px}
+.yr-block.collapsed{margin:-3px 0}
+.card{padding:15px 17px;border-radius:18px;position:relative;overflow:hidden;
+  animation:rise .42s cubic-bezier(.2,.9,.25,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card h3{font-size:14.5px;font-weight:700;letter-spacing:.04em;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+.card h3 .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 12px currentColor;flex:none}
+.card p{font-size:14px;color:#dbe3f5}
+.card .sub{font-size:12.5px;color:var(--dim);margin-top:7px;line-height:1.6}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue);opacity:.85}
+.card.good::before{background:linear-gradient(180deg,var(--teal),#12b89b)} .card.good h3 .dot{background:var(--teal)}
+.card.bad::before{background:linear-gradient(180deg,var(--rose),#c94a5c)} .card.bad h3 .dot{background:var(--rose)}
+.card.gold::before{background:linear-gradient(180deg,var(--gold),#e59d3c)} .card.gold h3 .dot{background:var(--gold)}
+.card.gold{box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,.2),0 0 0 1px rgba(255,201,120,.22),0 0 40px -14px rgba(255,201,120,.55)}
+.card.info::before{background:linear-gradient(180deg,var(--violet),#6f56cc)} .card.info h3 .dot{background:var(--violet)}
+.tagline{display:inline-block;font-size:10.5px;letter-spacing:.2em;color:var(--dim);margin-bottom:6px;font-family:var(--disp)}
+
+/* 資料表 */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px;margin-top:11px}
+.stat{background:rgba(255,255,255,.05);border:1px solid var(--line2);border-radius:12px;padding:7px 4px;text-align:center}
+.stat b{display:block;font-family:var(--disp);font-size:15.5px;font-weight:700;color:var(--ink)}
+.stat span{font-size:9.5px;color:var(--dim);letter-spacing:.1em}
+.grade{font-family:var(--disp);font-weight:700}
+.g-S{color:var(--gold)} .g-A{color:var(--teal)} .g-B{color:var(--blue2)} .g-C{color:var(--dim)} .g-D{color:var(--rose)}
+
+/* ---------- 選項 ---------- */
+#act{display:flex;flex-direction:column;gap:10px;margin-top:6px;padding-bottom:26px}
+.act-title{font-size:13px;color:var(--dim);letter-spacing:.1em;margin:12px 2px 2px}
+.opt{position:relative;width:100%;text-align:left;padding:14px 46px 14px 17px;border-radius:17px;cursor:pointer;
+  color:var(--ink);font-family:var(--sans);font-size:14.5px;font-weight:500;overflow:hidden;transition:.22s cubic-bezier(.2,.9,.25,1);
+  background:linear-gradient(150deg,rgba(255,255,255,.09),rgba(255,255,255,.035));
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid var(--line);box-shadow:0 14px 34px -22px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.14);
+  animation:rise .38s cubic-bezier(.2,.9,.25,1) both}
+.opt small{display:block;font-size:12px;color:var(--dim);font-weight:400;margin-top:3px;line-height:1.55}
+.opt::after{content:'→';position:absolute;right:17px;top:50%;transform:translateY(-50%);color:var(--dim);
+  font-size:16px;transition:.22s}
+.opt:hover{transform:translateY(-2px);border-color:rgba(122,169,255,.5);background:linear-gradient(150deg,rgba(255,255,255,.14),rgba(255,255,255,.055))}
+.opt:hover::after{color:var(--blue2);right:13px}
+.opt:active{transform:translateY(0) scale(.995)}
+.opt.main{border-color:rgba(122,169,255,.42);
+  background:linear-gradient(140deg,rgba(77,141,255,.30),rgba(53,230,197,.12) 70%,rgba(255,255,255,.05));
+  box-shadow:0 18px 40px -22px rgba(77,141,255,.9),inset 0 1px 0 rgba(255,255,255,.2)}
+.opt.main::after{color:var(--blue2)}
+.opt.warn{border-color:rgba(255,122,138,.35);background:linear-gradient(150deg,rgba(255,122,138,.16),rgba(255,255,255,.04))}
+.opt.gold{border-color:rgba(255,201,120,.42);background:linear-gradient(150deg,rgba(255,201,120,.22),rgba(255,255,255,.05))}
+.opt .shine{position:absolute;top:0;left:-60%;width:45%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);transform:skewX(-18deg)}
+.opt:hover .shine{animation:sweep .75s ease}
+@keyframes sweep{to{left:120%}}
+.opt .pill{display:inline-block;font-family:var(--disp);font-size:10.5px;padding:1px 8px;border-radius:999px;
+  border:1px solid var(--line);color:var(--dim);margin-left:8px;vertical-align:middle}
+
+/* ---------- 能力面板 ---------- */
+.panel{padding:16px 16px 14px;border-radius:20px;margin-bottom:14px}
+.panel h4{font-family:var(--disp);font-size:11px;letter-spacing:.26em;color:var(--dim);margin-bottom:12px;font-weight:500}
+.ab{margin-bottom:9px}
+.ab .t{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.ab .t span{color:var(--dim)} .ab .t b{font-family:var(--disp);font-size:13px}
+.track{position:relative;height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;
+  background:linear-gradient(90deg,var(--blue),var(--teal));transition:width .55s cubic-bezier(.2,.9,.25,1)}
+.track u{position:absolute;top:-2px;width:2px;height:10px;background:rgba(255,255,255,.5);border-radius:2px}
+.ab.cap .track i{background:linear-gradient(90deg,var(--gold),#ffe6bd)}
+#radar{display:block;margin:0 auto 6px}
+.trait-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:9px;font-size:11.5px;line-height:1.5}
+.tag{flex:none;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.05em;
+  border:1px solid var(--line);background:rgba(255,255,255,.07)}
+.tag.pos{color:#0a1a16;background:linear-gradient(120deg,var(--teal),#9df3e2);border-color:transparent}
+.tag.neg{color:#25060c;background:linear-gradient(120deg,var(--rose),#ffb3bd);border-color:transparent}
+.tag.rare{color:#1c1204;background:linear-gradient(120deg,var(--gold),#ffe7bb);border-color:transparent}
+.trait-row .d{color:var(--dim)}
+.gone{text-decoration:line-through;opacity:.45}
+
+/* 側欄時間軸 */
+#tl-wrap{position:relative;padding-left:17px;max-height:calc(100dvh - 190px);overflow-y:auto;scrollbar-width:thin}
+#tl-wrap::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line)}
+.tl{display:flex;gap:11px;align-items:center;margin-bottom:11px;cursor:pointer;font-size:12px;color:var(--dim)}
+.tl .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18);flex:none;margin-left:-16px;
+  border:1px solid rgba(255,255,255,.25)}
+.tl.now{color:var(--gold)} .tl.now .dot{background:var(--gold);box-shadow:0 0 14px var(--gold);border-color:transparent}
+.tl b{font-family:var(--disp);color:inherit;font-weight:500;margin-right:6px}
+.tl:hover{color:var(--ink)}
+
+/* ---------- 骰子 ---------- */
+#dice-tray{display:flex;flex-wrap:wrap;gap:9px;margin:2px 0 12px}
+.die{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-size:21px;font-weight:700;
+  background:linear-gradient(150deg,rgba(255,255,255,.17),rgba(255,255,255,.05));
+  border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 22px -14px #000;
+  transition:.25s}
+.die.on{color:#06101f;background:linear-gradient(140deg,var(--gold),#ffe3b3);border-color:transparent;
+  box-shadow:0 0 24px -4px rgba(255,201,120,.75);transform:translateY(-2px) scale(1.04)}
+.die.used{opacity:.22;transform:scale(.9)}
+.alloc-row{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:14px;cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid var(--line2);margin-bottom:7px;transition:.2s}
+.alloc-row:hover{background:rgba(255,255,255,.1);border-color:rgba(122,169,255,.4);transform:translateX(3px)}
+.alloc-row .nm{flex:none;width:58px;font-size:12.5px;font-weight:700}
+.alloc-row .track{flex:1}
+.alloc-row .vv{flex:none;font-family:var(--disp);font-size:11.5px;min-width:88px;white-space:nowrap;text-align:right;color:var(--dim)}
+.alloc-row .vv b{color:var(--ink);font-size:15px}
+.alloc-row.full{opacity:.55}
+
+/* ---------- 開場 / Modal ---------- */
+#gate{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#gate-in{width:100%;max-width:520px;padding:30px 26px;border-radius:26px;margin:auto}
+.brand{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.brand .mark{width:40px;height:40px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(140deg,var(--blue),var(--violet));box-shadow:0 12px 30px -12px var(--blue);
+  font-family:var(--disp);font-weight:700;font-size:19px;color:#fff}
+.brand b{display:block;font-family:var(--disp);font-size:17px;letter-spacing:.03em}
+.brand span{display:block;font-size:10.5px;color:var(--dim);letter-spacing:.24em}
+h1.big{font-size:27px;line-height:1.35;font-weight:900;letter-spacing:-.01em;margin-bottom:10px}
+h1.big em{font-style:normal;background:linear-gradient(100deg,var(--blue2),var(--teal) 60%,var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{font-size:13.5px;color:var(--dim);line-height:1.75;margin-bottom:20px}
+label.fl{display:block;font-size:11px;letter-spacing:.2em;color:var(--dim);margin:14px 0 6px;font-family:var(--disp)}
+input.fi{width:100%;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--sans);font-size:15px;outline:none;transition:.2s}
+input.fi:focus{border-color:var(--blue);background:rgba(77,141,255,.1);box-shadow:0 0 0 4px rgba(77,141,255,.12)}
+.pickgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pick{padding:11px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.045);
+  cursor:pointer;transition:.2s;text-align:left;color:var(--ink);font-family:var(--sans)}
+.pick b{display:block;font-size:13.5px;font-weight:700}
+.pick span{display:block;font-size:11px;color:var(--dim);margin-top:2px;line-height:1.5}
+.pick:hover{background:rgba(255,255,255,.1);transform:translateY(-1px)}
+.pick.sel{border-color:rgba(122,169,255,.65);background:linear-gradient(140deg,rgba(77,141,255,.28),rgba(53,230,197,.1));
+  box-shadow:0 0 0 3px rgba(77,141,255,.14)}
+.cta{width:100%;margin-top:20px;padding:15px;border-radius:16px;border:none;cursor:pointer;
+  font-family:var(--sans);font-size:15.5px;font-weight:700;color:#04101f;letter-spacing:.06em;
+  background:linear-gradient(110deg,var(--teal),var(--blue2) 55%,var(--violet));
+  box-shadow:0 20px 44px -18px rgba(77,141,255,.9);transition:.22s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 26px 52px -18px rgba(77,141,255,1)}
+.cta:disabled{opacity:.4;cursor:not-allowed;transform:none}
+#modal{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(3,5,12,.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#modal.show{display:flex}
+#modal-box{width:100%;max-width:460px;max-height:86dvh;overflow-y:auto;padding:22px;border-radius:22px}
+#modal-box h3{font-family:var(--disp);font-size:15px;letter-spacing:.1em;margin-bottom:12px}
+.mrow{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:13px}
+.mrow:last-child{border:none}
+.mrow span{color:var(--dim)}
+.mbtn{width:100%;margin-top:8px;padding:12px;border-radius:14px;border:1px solid var(--line);cursor:pointer;
+  background:rgba(255,255,255,.06);color:var(--ink);font-family:var(--sans);font-size:14px;transition:.2s}
+.mbtn:hover{background:rgba(255,255,255,.13)}
+
+/* ---------- 結算 ---------- */
+.final{padding:26px 22px;border-radius:26px;text-align:center;position:relative;overflow:hidden}
+.final::before{content:'';position:absolute;inset:-40% -10% auto;height:70%;
+  background:radial-gradient(50% 60% at 50% 0,rgba(255,201,120,.4),transparent 70%);pointer-events:none}
+.final .rank{font-family:var(--disp);font-size:34px;font-weight:700;line-height:1.15;letter-spacing:-.01em;
+  background:linear-gradient(100deg,var(--gold),#fff0d2 45%,var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent}
+.final .rank-sub{font-size:11px;letter-spacing:.3em;color:var(--dim);font-family:var(--disp);margin-bottom:10px}
+.final .verdict{font-size:14px;color:#dce4f6;line-height:1.85;margin-top:14px;text-align:left}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:18px}
+.kv div{background:rgba(255,255,255,.05);border:1px solid var(--line2);border-radius:14px;padding:10px 6px}
+.kv b{display:block;font-family:var(--disp);font-size:16px}
+.kv span{font-size:10px;color:var(--dim);letter-spacing:.1em}
+.foot{text-align:center;font-size:11px;color:var(--dim);padding:22px 10px 34px;letter-spacing:.05em}
+.foot b{color:var(--gold);font-family:var(--disp)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:9px}
+::-webkit-scrollbar-track{background:transparent}
+
+
+/* ---------- 明亮簡約主題 ---------- */
+body{
+  background:
+    radial-gradient(circle at 8% 4%,rgba(0,107,255,.08),transparent 26%),
+    radial-gradient(circle at 92% 8%,rgba(18,184,166,.07),transparent 24%),
+    linear-gradient(180deg,#fbfdff 0%,#f7f9fc 58%,#f4f7fb 100%);
+}
+body::before{
+  inset:-12%;
+  background:
+    radial-gradient(42% 30% at 18% 8%,rgba(0,107,255,.10),transparent 68%),
+    radial-gradient(38% 28% at 88% 12%,rgba(121,108,242,.08),transparent 70%),
+    radial-gradient(44% 32% at 72% 88%,rgba(18,184,166,.07),transparent 72%);
+  filter:blur(38px);
+  opacity:.8;
+}
+body::after{opacity:.055;mix-blend-mode:multiply}
+a{color:var(--blue)}
+.glass{
+  background:rgba(255,255,255,.90);
+  border-color:var(--line);
+  box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,.95);
+}
+.glass-soft{background:rgba(255,255,255,.74);border-color:var(--line2)}
+#board{
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(220,228,239,.96);
+  box-shadow:0 18px 45px -32px rgba(30,64,175,.32),0 1px 0 rgba(255,255,255,.9) inset;
+}
+#bd-co{background:#f7f9fc;border-color:#e5eaf1}
+.icon-btn{background:#fff;color:var(--ink);border-color:#dfe6ef;box-shadow:0 5px 14px -12px rgba(18,38,63,.45)}
+.icon-btn:hover{background:#f2f6ff;border-color:#bed4ff;color:var(--blue)}
+.cell{background:#f8fafc;border-color:#edf1f5}
+.cell.c-burn b{color:var(--ink)}
+.chip{background:#fff;border-color:#e4e9f1;color:#667085}
+.chip:hover{color:var(--blue);border-color:#bed4ff;background:#f5f8ff}
+.chip.now{color:#fff;background:var(--blue);border-color:var(--blue)}
+.yr-head::after{background:linear-gradient(90deg,#dfe6ef,transparent)}
+.card p{color:#344054}
+.card.gold{box-shadow:0 18px 48px -36px rgba(217,147,24,.42),0 0 0 1px rgba(217,147,24,.18)}
+.stat{background:#f8fafc;border-color:#edf1f5}
+.opt{
+  background:#fff;
+  border-color:#dfe6ef;
+  box-shadow:0 14px 34px -28px rgba(27,52,89,.34),inset 0 1px 0 #fff;
+}
+.opt:hover{border-color:#a9c8ff;background:#f8fbff;box-shadow:0 16px 36px -28px rgba(0,107,255,.42)}
+.opt.main{border-color:#a9c8ff;background:linear-gradient(140deg,#edf5ff,#f4fbff 70%,#fff);box-shadow:0 18px 42px -32px rgba(0,107,255,.5)}
+.opt.warn{border-color:#f1c5ce;background:#fff7f8}
+.opt.gold{border-color:#eed39b;background:#fffaf0}
+.opt .shine{background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent)}
+.track{background:#edf1f6}
+.track u{background:#98a2b3}
+.tag{background:#f6f8fb;border-color:#e1e7ef}
+.tl .dot{background:#fff;border-color:#cfd8e6}
+.die{background:#fff;border-color:#dfe6ef;box-shadow:inset 0 1px 0 #fff,0 10px 22px -18px rgba(22,34,51,.35)}
+.die.on{color:#fff;background:var(--blue);box-shadow:0 10px 24px -12px rgba(0,107,255,.55)}
+.alloc-row{background:#fff;border-color:#e3e9f2}
+.alloc-row:hover{background:#f7faff;border-color:#b9d0fb}
+.brand .mark{background:var(--blue);box-shadow:0 12px 28px -16px rgba(0,107,255,.65)}
+h1.big em{background:linear-gradient(100deg,var(--blue),#17a8c3 72%);-webkit-background-clip:text;background-clip:text;color:transparent}
+input.fi{background:#fff;border-color:#dfe6ef;color:var(--ink)}
+input.fi:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 4px rgba(0,107,255,.10)}
+.pick{background:#fff;border-color:#dfe6ef;color:var(--ink)}
+.pick:hover{background:#f7faff;border-color:#bdd2ff}
+.pick.sel{border-color:#86b3ff;background:#edf5ff;box-shadow:0 0 0 3px rgba(0,107,255,.09)}
+.cta{color:#fff;background:var(--blue);box-shadow:0 18px 40px -22px rgba(0,107,255,.62)}
+.cta:hover{background:#005ee0;box-shadow:0 22px 44px -22px rgba(0,107,255,.72)}
+#modal{background:rgba(15,23,42,.24)}
+.mbtn{background:#fff;border-color:#dfe6ef;color:var(--ink)}
+.mbtn:hover{background:#f7faff;border-color:#bdd2ff}
+.final::before{background:radial-gradient(50% 60% at 50% 0,rgba(0,107,255,.11),transparent 70%)}
+.final .rank{background:linear-gradient(100deg,var(--blue),#18a6ba 58%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.final .verdict{color:#344054}
+.kv div{background:#f8fafc;border-color:#edf1f5}
+::-webkit-scrollbar-thumb{background:#cfd7e3}
+@media(max-width:640px){
+  #gate{padding:12px}
+  #gate-in{padding:24px 19px;border-radius:22px}
+  h1.big{font-size:25px}
+  #board{margin-top:6px}
+}
+
+
+
+/* ===== V2 polish: layout + gradient glass ===== */
+:root{
+  --glass-hi:rgba(255,255,255,.84);
+  --glass-mid:rgba(255,255,255,.70);
+  --glass-low:rgba(235,244,255,.62);
+  --glass-stroke:rgba(255,255,255,.78);
+  --glass-shadow:0 24px 46px -34px rgba(22,34,51,.22),0 12px 30px -26px rgba(0,107,255,.18);
+}
+body{
+  background:
+    radial-gradient(55% 42% at 0% 0%, rgba(0,107,255,.10), transparent 62%),
+    radial-gradient(36% 28% at 100% 0%, rgba(121,108,242,.08), transparent 62%),
+    radial-gradient(42% 30% at 100% 100%, rgba(18,184,166,.07), transparent 68%),
+    linear-gradient(180deg,#f5f8ff 0%,#f8fbff 38%,#f4f7fb 100%);
+}
+body::before{opacity:.92;filter:blur(24px)}
+body::after{opacity:.28}
+#shell{
+  gap:24px;
+  padding:12px 18px 54px;
+  max-width:1540px;
+}
+#mid{max-width:760px;gap:10px}
+aside{top:16px;padding-top:14px}
+.panel{padding:18px 18px 16px;border-radius:22px}
+.glass,
+.card,
+.opt,
+#gate-in,
+#modal-box,
+.final{
+  background:linear-gradient(145deg,var(--glass-hi) 0%,var(--glass-mid) 58%,var(--glass-low) 100%);
+  border:1px solid var(--glass-stroke);
+  box-shadow:var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.92);
+  -webkit-backdrop-filter:blur(22px) saturate(145%);
+  backdrop-filter:blur(22px) saturate(145%);
+}
+.glass-soft,
+.stat,
+.cell,
+.kv div,
+.tag,
+.alloc-row,
+.die,
+input.fi,
+.pick,
+.mbtn{
+  background:linear-gradient(155deg,rgba(255,255,255,.74),rgba(255,255,255,.58));
+  border:1px solid rgba(255,255,255,.74);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.86);
+}
+#board{
+  top:10px;
+  margin:6px 0 16px;
+  padding:16px 18px 16px;
+  border-radius:24px;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.90),rgba(244,249,255,.80) 58%,rgba(233,242,255,.72) 100%),
+    linear-gradient(90deg,rgba(0,107,255,.06),transparent 55%);
+}
+#bd-top{gap:12px;align-items:center}
+#bd-name{font-size:20px;color:#122033}
+#bd-role{font-size:13px;color:#617088;margin-top:3px}
+#bd-co{
+  margin-top:8px;
+  padding:5px 12px;
+  background:rgba(255,255,255,.52);
+  border:1px solid rgba(255,255,255,.80);
+  color:#42526b;
+}
+.icon-btn{
+  background:linear-gradient(155deg,rgba(255,255,255,.75),rgba(243,248,255,.68));
+  border:1px solid rgba(255,255,255,.80);
+  box-shadow:0 10px 24px -20px rgba(0,107,255,.20);
+}
+.icon-btn:hover{background:rgba(255,255,255,.92);border-color:#cfe0ff}
+#bd-grid{gap:10px;margin-top:14px}
+.cell{
+  padding:10px 8px 8px;
+  border-radius:16px;
+}
+.cell span{font-size:10px;letter-spacing:.16em;margin-top:3px}
+#bd-strip{margin-top:12px;padding-bottom:4px}
+.chip{
+  padding:5px 12px;
+  background:rgba(255,255,255,.45);
+  border:1px solid rgba(255,255,255,.78);
+  color:#617088;
+}
+.chip:hover{background:rgba(255,255,255,.8);color:#122033}
+.chip.now{color:#0b316e;background:linear-gradient(120deg,#ddecff,#f7fbff);border-color:#bdd4ff}
+#log{gap:14px}
+.yr-block{gap:12px}
+.yr-head{margin-top:8px;padding:0 4px;color:#7d8ca5;letter-spacing:.20em}
+.yr-head::after{background:linear-gradient(90deg,rgba(182,198,223,.72),transparent)}
+.card{
+  padding:18px 20px 17px;
+  border-radius:22px;
+  overflow:hidden;
+}
+.card h3{font-size:15px;margin-bottom:6px}
+.card p{color:#334155;line-height:1.72}
+.card .sub{color:#667085;margin-top:9px}
+.stat-row{gap:10px;margin-top:13px}
+.stat{padding:9px 6px;border-radius:14px}
+#act{gap:12px;margin-top:2px;padding-bottom:36px}
+.act-title{font-size:12px;color:#7d8ca5;letter-spacing:.16em;margin:14px 4px 0}
+.opt{
+  padding:16px 52px 16px 18px;
+  border-radius:20px;
+  font-size:14.5px;
+}
+.opt small{margin-top:5px;color:#667085}
+.opt::after{right:18px;font-size:17px}
+.opt:hover{transform:translateY(-2px);border-color:#c3d8ff;background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(244,249,255,.84));box-shadow:0 20px 40px -30px rgba(0,107,255,.24), inset 0 1px 0 rgba(255,255,255,.96)}
+.opt.main{border-color:#b9d4ff;background:linear-gradient(145deg,#f7fbff,#eef6ff 58%,#e9f3ff)}
+.opt.warn{border-color:#f3c9d1;background:linear-gradient(145deg,#fff9fa,#fff1f3)}
+.opt.gold{border-color:#ecd49a;background:linear-gradient(145deg,#fffdf7,#fff7e7)}
+.track{background:rgba(217,225,236,.65)}
+.tag{background:rgba(255,255,255,.48);border-color:rgba(255,255,255,.72)}
+#tl-wrap{padding-left:18px;max-height:calc(100dvh - 170px)}
+.tl{padding:4px 0}
+.tl .dot{background:rgba(255,255,255,.86);border-color:#d2deef}
+#gate{padding:22px}
+#gate-in{max-width:560px;padding:34px 30px;border-radius:28px}
+.lede{font-size:14px;max-width:44ch}
+.pickgrid{gap:10px}
+.pick{padding:13px 14px;border-radius:16px}
+.pick b{font-size:14px}
+.cta{
+  margin-top:22px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#0070ff,#3b91ff 55%,#1cc2d2);
+  box-shadow:0 22px 44px -24px rgba(0,107,255,.48);
+}
+.cta:hover{background:linear-gradient(135deg,#0066ea,#3388fb 55%,#16b0c0)}
+#modal{background:rgba(15,23,42,.18);backdrop-filter:blur(12px)}
+#modal-box{border-radius:24px}
+.final{padding:28px 24px;border-radius:28px}
+.final .verdict{line-height:1.9}
+.foot{padding:18px 10px 32px;color:#71819b}
+@media (max-width:1079px){
+  #shell{padding:10px 14px 44px;gap:18px}
+  #mid{max-width:none}
+}
+@media (max-width:640px){
+  #shell{padding:8px 10px 34px}
+  #board{top:6px;padding:14px 14px 15px;border-radius:22px}
+  #bd-top{flex-wrap:wrap;align-items:flex-start}
+  #bd-id{width:100%}
+  #bd-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .icon-btn{width:36px;height:36px;border-radius:12px}
+  .card,.opt,.final{border-radius:20px}
+  .card{padding:16px 16px 15px}
+  .opt{padding:15px 46px 15px 16px}
+  #gate{padding:12px}
+  #gate-in{padding:26px 20px;border-radius:24px}
+  .panel{padding:16px 15px 14px}
+}
+
+
+
+/* ===== V3 polish: tinted background + clearer glass borders ===== */
+:root{
+  --page-blue:#eef5ff;
+  --page-lav:#f3f0ff;
+  --page-mint:#eefaf8;
+  --edge:#c6d3e6;
+  --edge-strong:#aebfd8;
+  --edge-blue:#78aaff;
+}
+
+body{
+  background:
+    radial-gradient(50% 38% at 8% 4%, rgba(0,107,255,.15), transparent 68%),
+    radial-gradient(38% 30% at 92% 8%, rgba(121,108,242,.12), transparent 70%),
+    radial-gradient(42% 36% at 86% 94%, rgba(18,184,166,.10), transparent 72%),
+    radial-gradient(34% 28% at 10% 88%, rgba(255,201,120,.08), transparent 72%),
+    linear-gradient(135deg,var(--page-blue) 0%,#f7f9ff 42%,var(--page-lav) 72%,var(--page-mint) 100%);
+  background-attachment:fixed;
+}
+
+body::before{
+  opacity:.58;
+  filter:blur(36px) saturate(118%);
+}
+body::after{opacity:.20}
+
+/* 首頁主玻璃盒：保留背景色透進來 */
+#gate-in{
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.78),rgba(248,251,255,.66) 55%,rgba(239,246,255,.58));
+  border:1px solid rgba(190,204,226,.86);
+  box-shadow:
+    0 28px 64px -36px rgba(45,74,126,.28),
+    0 14px 30px -26px rgba(0,107,255,.20),
+    inset 0 1px 0 rgba(255,255,255,.92);
+}
+
+/* 主要玻璃卡片的邊線提高一級 */
+.glass,
+.card,
+.opt,
+#modal-box,
+.final{
+  border-color:rgba(190,204,226,.82);
+  box-shadow:
+    0 22px 44px -34px rgba(31,56,96,.22),
+    0 10px 28px -24px rgba(0,107,255,.16),
+    inset 0 1px 0 rgba(255,255,255,.92);
+}
+
+/* 次級元件邊線：不要再融進白底 */
+.glass-soft,
+.stat,
+.cell,
+.kv div,
+.tag,
+.alloc-row,
+.die,
+input.fi,
+.pick,
+.mbtn{
+  background:linear-gradient(155deg,rgba(255,255,255,.78),rgba(247,250,255,.64));
+  border:1px solid rgba(184,199,221,.90);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.92),
+    0 10px 20px -18px rgba(32,58,96,.12);
+}
+
+/* 首頁輸入框 */
+input.fi{
+  background:rgba(255,255,255,.76);
+  border-color:rgba(174,191,216,.96);
+}
+input.fi:hover{border-color:#9fb4d3}
+input.fi:focus{
+  border-color:#76a9ff;
+  background:rgba(255,255,255,.94);
+  box-shadow:
+    0 0 0 4px rgba(0,107,255,.10),
+    0 12px 24px -20px rgba(0,107,255,.18),
+    inset 0 1px 0 rgba(255,255,255,.96);
+}
+
+/* 首頁選項卡：一般狀態有清楚輪廓，仍維持玻璃感 */
+.pick{
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.82),rgba(246,250,255,.70));
+  border-color:rgba(181,197,220,.95);
+  box-shadow:
+    0 10px 24px -22px rgba(31,56,96,.18),
+    inset 0 1px 0 rgba(255,255,255,.94);
+}
+.pick:hover{
+  background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(239,246,255,.84));
+  border-color:#91b6f5;
+  box-shadow:
+    0 14px 28px -22px rgba(0,107,255,.20),
+    inset 0 1px 0 rgba(255,255,255,.98);
+}
+.pick.sel{
+  border-color:#6d9fff;
+  background:
+    linear-gradient(145deg,rgba(236,245,255,.96),rgba(224,238,255,.90) 70%,rgba(243,248,255,.92));
+  box-shadow:
+    0 0 0 2px rgba(0,107,255,.14),
+    0 14px 30px -22px rgba(0,107,255,.24),
+    inset 0 1px 0 rgba(255,255,255,.98);
+}
+
+/* 儀表板也稍微帶一點藍，不做純白浮層 */
+#board{
+  border-color:rgba(179,197,224,.88);
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.82),rgba(241,247,255,.76) 58%,rgba(229,239,255,.70) 100%);
+}
+.cell{
+  background:linear-gradient(155deg,rgba(255,255,255,.72),rgba(240,246,255,.62));
+  border-color:rgba(189,203,223,.84);
+}
+
+/* 選項區分層更清楚 */
+.opt{
+  border-color:rgba(184,199,221,.88);
+}
+.opt.main{
+  border-color:#9fc1ff;
+  background:linear-gradient(145deg,rgba(248,252,255,.94),rgba(235,245,255,.90) 58%,rgba(226,239,255,.88));
+}
+
+/* 左右側欄在桌機不會像兩塊白色貼紙 */
+aside .panel{
+  background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(244,248,255,.60));
+  border-color:rgba(188,202,224,.82);
+}
+
+/* CTA 微調，和背景漸層更協調 */
+.cta{
+  background:linear-gradient(135deg,#006bff 0%,#3a8dff 58%,#22b8cb 100%);
+  box-shadow:0 22px 44px -24px rgba(0,107,255,.42);
+}
+
+@media (max-width:640px){
+  body{
+    background:
+      radial-gradient(68% 36% at 4% 0%, rgba(0,107,255,.14), transparent 72%),
+      radial-gradient(52% 30% at 96% 8%, rgba(121,108,242,.10), transparent 74%),
+      linear-gradient(160deg,#edf5ff 0%,#f8f9ff 55%,#f1f7f7 100%);
+  }
+  #gate-in{background:linear-gradient(150deg,rgba(255,255,255,.80),rgba(241,247,255,.68))}
+}
+
+
+
+/* ===== V4: bright social MUD UI ===== */
+:root{
+  --mud-blue:#006bff;
+  --mud-blue-soft:#dceaff;
+  --mud-ink:#14213a;
+  --mud-slate:#627089;
+  --mud-line:rgba(157,178,211,.76);
+  --mud-panel:rgba(249,252,255,.72);
+}
+
+button,.pick,.opt,.alloc-row,.icon-btn,.mbtn,.cta{touch-action:manipulation}
+.pick:active,.icon-btn:active,.cta:active{transform:scale(.985)}
+
+/* 更像數位世界，但保持明亮 */
+body{
+  background:
+    radial-gradient(46% 30% at 8% 2%,rgba(0,107,255,.18),transparent 72%),
+    radial-gradient(35% 28% at 92% 8%,rgba(105,120,255,.11),transparent 72%),
+    radial-gradient(40% 34% at 82% 96%,rgba(43,190,186,.09),transparent 72%),
+    linear-gradient(145deg,#eaf3ff 0%,#f5f8ff 39%,#f0f3fb 72%,#ebf8f6 100%);
+}
+body::after{
+  opacity:.18;
+  background-image:
+    linear-gradient(rgba(73,105,158,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(73,105,158,.055) 1px,transparent 1px);
+  background-size:28px 28px;
+  -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.75),transparent 86%);
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.75),transparent 86%);
+}
+
+/* 中文行尾與標題排版 */
+h1.big,.card h3,.pick b,.final .rank,#bd-name{
+  text-wrap:balance;
+  word-break:auto-phrase;
+  line-break:strict;
+}
+.lede,.pick span,.opt small,.card p,.card .sub,.trait-row .d,.final .verdict,.mrow{
+  text-wrap:pretty;
+  word-break:auto-phrase;
+  line-break:strict;
+}
+.keep-tail{display:inline!important;white-space:nowrap!important}
+
+/* MUD 狀態列 */
+.mud-hudline,.mud-gate-status,.feed-label{
+  font-family:var(--disp);
+  color:#71809a;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+}
+.mud-hudline{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:11px;padding-bottom:9px;
+  border-bottom:1px solid rgba(168,185,211,.55);
+  font-size:9.5px;font-weight:700;
+}
+.mud-gate-status{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:-2px 0 16px;padding:8px 10px;border-radius:12px;
+  background:rgba(235,244,255,.56);border:1px solid rgba(176,197,227,.68);
+  font-size:9.5px;font-weight:700;
+}
+.mud-led,.feed-live{
+  display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;
+  background:#17b89f;box-shadow:0 0 0 3px rgba(23,184,159,.10),0 0 13px rgba(23,184,159,.62);
+  animation:mudPulse 1.9s ease-in-out infinite;
+}
+.mud-code{opacity:.72}
+@keyframes mudPulse{0%,100%{opacity:.68;transform:scale(.92)}50%{opacity:1;transform:scale(1.15);box-shadow:0 0 0 5px rgba(23,184,159,.08),0 0 18px rgba(23,184,159,.74)}}
+
+/* 首頁更像建立角色，不像一般表單 */
+#gate-in{
+  max-width:590px;
+  padding:30px 30px 32px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.78),rgba(242,248,255,.67) 55%,rgba(232,242,255,.60));
+  border:1px solid rgba(160,183,218,.84);
+  box-shadow:0 30px 72px -40px rgba(32,66,120,.30),0 12px 32px -24px rgba(0,107,255,.22),inset 0 1px 0 rgba(255,255,255,.96);
+}
+h1.big{font-size:30px;max-width:12.5em;margin-bottom:12px;letter-spacing:-.025em}
+.lede{max-width:48ch;color:#5d6c84;margin-bottom:22px}
+label.fl{
+  display:flex;align-items:center;gap:8px;margin-top:17px;margin-bottom:7px;
+  color:#627089;font-size:10.5px;font-weight:700;letter-spacing:.15em;
+}
+label.fl::before{content:'>';font-family:var(--disp);color:var(--mud-blue);font-size:12px}
+.pickgrid{gap:10px}
+.pick{
+  position:relative;min-height:68px;padding:12px 14px 12px 15px;
+  border-color:rgba(159,180,211,.86);
+  background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(243,248,255,.66));
+  overflow:hidden;
+}
+.pick b{font-size:14px;color:#1b2a43}
+.pick span{font-size:10.8px;line-height:1.55;color:#6a7890}
+.pick:hover{transform:translateY(-1px);border-color:#88aff0}
+.pick.sel{
+  border-color:#5c96f6;
+  background:linear-gradient(140deg,rgba(233,243,255,.96),rgba(225,238,255,.90) 68%,rgba(244,249,255,.92));
+  box-shadow:0 0 0 2px rgba(0,107,255,.12),0 15px 30px -23px rgba(0,107,255,.28),inset 0 1px 0 rgba(255,255,255,.98);
+}
+.pick.sel::after{
+  content:'';position:absolute;right:12px;top:12px;width:7px;height:7px;border-radius:50%;
+  background:var(--mud-blue);box-shadow:0 0 14px rgba(0,107,255,.72);animation:blueBlink 1.7s ease-in-out infinite;
+}
+@keyframes blueBlink{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.18)}}
+input.fi{min-height:48px;border-radius:15px;background:rgba(255,255,255,.68)}
+.cta{position:relative;overflow:hidden;min-height:52px;font-size:15px}
+.cta::after{
+  content:'';position:absolute;inset:-20% auto -20% -38%;width:28%;transform:skewX(-18deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.58),transparent);
+  animation:ctaScan 4.1s ease-in-out infinite;
+}
+@keyframes ctaScan{0%,58%{left:-40%;opacity:0}68%{opacity:1}86%,100%{left:120%;opacity:0}}
+
+/* 玩家 HUD */
+#board{
+  overflow:hidden;
+  border-color:rgba(153,178,214,.88);
+  box-shadow:0 22px 44px -32px rgba(28,59,109,.22),0 12px 32px -26px rgba(0,107,255,.18),inset 0 1px 0 rgba(255,255,255,.94);
+}
+#board::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(110deg,transparent 5%,rgba(255,255,255,.36) 35%,transparent 58%);
+  transform:translateX(-120%);animation:hudGlint 8s ease-in-out infinite;
+}
+@keyframes hudGlint{0%,72%{transform:translateX(-120%)}88%,100%{transform:translateX(130%)}}
+#bd-name{font-size:21px}
+#bd-name em{color:#547098;letter-spacing:.09em}
+#bd-co{font-weight:600;letter-spacing:.02em}
+#bd-grid{gap:9px}
+.cell{border-color:rgba(173,191,218,.78);background:rgba(255,255,255,.48)}
+.cell b{font-size:18px}
+.cell span{color:#728099;letter-spacing:.10em}
+.cell .bar{height:3px}
+
+/* Feed：像遊戲世界的動態紀錄 */
+.feed-label{
+  display:flex;align-items:center;gap:8px;margin:3px 4px 0;padding:4px 3px 2px;
+  font-size:9.5px;
+}
+.feed-label b{color:#31415b;font-size:11px;letter-spacing:.08em}
+.feed-label>span:last-child{margin-left:auto;opacity:.66}
+.feed-live{width:6px;height:6px;margin-right:0}
+.yr-head{font-family:var(--disp);font-size:11px;color:#75839a;letter-spacing:.14em}
+.yr-head::before{animation:blueBlink 2.1s ease-in-out infinite}
+.card{
+  border-color:rgba(169,188,217,.78);
+  background:linear-gradient(145deg,rgba(255,255,255,.73),rgba(242,247,255,.62));
+}
+.card::before{width:2px;opacity:.92}
+.card h3{color:#1b2b45;line-height:1.45}
+.card h3 .dot{width:7px;height:7px;box-shadow:0 0 10px currentColor}
+.card p{font-size:13.8px;color:#43516a}
+.card .sub{font-size:12.2px;color:#71809a}
+/* 不把卡片做成彩虹：只保留語意提示線與數值色 */
+.card.good,.card.bad,.card.gold,.card.info{background:linear-gradient(145deg,rgba(255,255,255,.76),rgba(241,247,255,.64))}
+
+/* 選擇面板：數字鍵就是 MUD command */
+#act{counter-reset:mudChoice}
+.opt,.alloc-row{counter-increment:mudChoice}
+.opt{
+  padding:15px 50px 15px 54px;
+  border-color:rgba(164,184,214,.82);
+  background:linear-gradient(145deg,rgba(255,255,255,.76),rgba(241,247,255,.64));
+}
+.opt::before{
+  content:counter(mudChoice,decimal-leading-zero);
+  position:absolute;left:15px;top:50%;transform:translateY(-50%);
+  min-width:27px;height:27px;display:grid;place-items:center;border-radius:9px;
+  font-family:var(--disp);font-size:10px;font-weight:700;color:#526582;letter-spacing:.04em;
+  background:rgba(229,238,251,.78);border:1px solid rgba(169,189,218,.76);
+}
+.opt.main::before{color:#075ccf;border-color:#9ec0fa;background:#e7f1ff;box-shadow:0 0 16px rgba(0,107,255,.12)}
+.opt::after{right:17px;color:#71809a}
+.opt:hover{border-color:#91b6ef;background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(236,245,255,.82))}
+.opt:active{transform:translateY(0) scale(.985);box-shadow:0 8px 18px -14px rgba(0,107,255,.28)}
+.opt small{font-size:11.7px;color:#68778f}
+.opt .pill{
+  color:#536783;background:rgba(230,238,250,.70);border-color:rgba(170,189,215,.72);
+}
+.alloc-row{position:relative;padding-left:52px;min-height:50px}
+.alloc-row::before{
+  content:counter(mudChoice,decimal-leading-zero);position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:27px;height:27px;display:grid;place-items:center;border-radius:9px;font:700 10px var(--disp);
+  color:#526582;background:rgba(229,238,251,.78);border:1px solid rgba(169,189,218,.76);
+}
+.act-title{font-family:var(--disp);font-weight:700;color:#596b86;letter-spacing:.10em}
+.act-title::before{content:'> ';color:var(--mud-blue)}
+
+/* 標籤：統一單一視覺語言，避免太多顏色 */
+.tag,.tag.pos,.tag.neg,.tag.rare{
+  color:#3f5574!important;
+  background:linear-gradient(145deg,#eef4fc,#e4edf9)!important;
+  border:1px solid #c8d7ea!important;
+}
+.trait-row .d{color:#66758c}
+.chip,.chip.now{
+  color:#526681;background:rgba(239,245,253,.72);border-color:rgba(176,194,220,.72);
+}
+.chip.now{color:#075dcc;border-color:#91b8f6;background:#e7f1ff;box-shadow:0 0 14px rgba(0,107,255,.10)}
+.tl.now{color:#075dcc}
+.tl.now .dot{background:var(--mud-blue);box-shadow:0 0 0 3px rgba(0,107,255,.10),0 0 14px rgba(0,107,255,.48);animation:blueBlink 1.8s ease-in-out infinite}
+
+/* Modal 延續亮色介面，修掉舊深色文字 */
+#modal-box p{color:#53627a!important}
+#modal-box h3{color:#1d2b43}
+.mrow span{color:#65748b}
+.mbtn:active{transform:scale(.985)}
+
+/* 桌面資訊密度 */
+@media(min-width:1080px){
+  aside{width:278px}
+  aside.right{width:306px}
+  #shell{gap:22px}
+  #mid{max-width:770px}
+}
+
+/* 手機：HUD 變薄、選擇區變成底部遊戲操作面板 */
+@media(max-width:640px){
+  html{scroll-padding-top:155px}
+  body{font-size:14px}
+  #shell{padding:6px 9px 26px}
+  #mid{gap:6px}
+  #board{top:5px;margin:4px 0 8px;padding:11px 11px 10px;border-radius:19px}
+  .mud-hudline{margin-bottom:8px;padding-bottom:7px;font-size:8px}
+  .mud-code{display:none}
+  #bd-top{flex-wrap:nowrap;align-items:flex-start;gap:7px}
+  #bd-id{width:auto;min-width:0}
+  #bd-name{font-size:17px}
+  #bd-name em{display:block;margin:2px 0 0;font-size:9.5px}
+  #bd-role{font-size:11px;margin-top:2px}
+  #bd-co{margin-top:5px;padding:3px 8px;font-size:10px;max-width:210px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .icon-btn{width:34px;height:34px;border-radius:11px}
+  #bd-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:9px}
+  .cell{padding:7px 3px 6px;border-radius:11px;min-width:0}
+  .cell b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cell span{font-size:8px;letter-spacing:.03em;white-space:nowrap}
+  #bd-strip{margin-top:7px;min-height:22px}
+  #bd-strip .chip:not(:last-child){display:none}
+  .chip{font-size:9px;padding:2px 8px}
+  .feed-label{margin-top:2px;padding-left:4px}
+  .card{padding:14px 14px 13px;border-radius:17px}
+  .card h3{font-size:13.5px;padding-right:2px}
+  .card p{font-size:13px;line-height:1.68}
+  .card .sub{font-size:11.4px;line-height:1.55}
+  .yr-head{font-size:9.5px;letter-spacing:.10em}
+  #act:not(:empty){
+    position:sticky;bottom:7px;z-index:36;
+    max-height:54svh;overflow:auto;
+    margin:8px 0 4px;padding:9px;
+    border-radius:19px;
+    background:linear-gradient(150deg,rgba(250,252,255,.91),rgba(235,243,254,.88));
+    border:1px solid rgba(151,177,216,.80);
+    box-shadow:0 20px 42px -22px rgba(29,55,100,.34),0 0 0 1px rgba(255,255,255,.48) inset;
+    -webkit-backdrop-filter:blur(20px) saturate(145%);backdrop-filter:blur(20px) saturate(145%);
+    overscroll-behavior:contain;
+  }
+  #act{gap:7px;padding-bottom:9px}
+  .act-title{margin:3px 4px 1px;font-size:10px}
+  .opt{min-height:54px;padding:12px 39px 12px 47px;border-radius:15px;font-size:13.5px}
+  .opt::before{left:11px;width:26px;height:26px}
+  .opt::after{right:12px}
+  .opt small{font-size:10.8px;margin-top:3px}
+  .alloc-row{min-height:52px;padding:9px 8px 9px 46px;border-radius:14px}
+  .alloc-row::before{left:9px;width:26px;height:26px}
+  .alloc-row .nm{width:48px;font-size:11px}
+  .alloc-row .vv{min-width:72px;font-size:10px}
+  .alloc-row .vv b{font-size:13px}
+  #gate{align-items:flex-start;padding:10px 9px}
+  #gate-in{max-width:none;padding:22px 16px 24px;border-radius:22px;margin:0 auto 12px}
+  .brand{margin-bottom:12px}
+  .brand .mark{width:36px;height:36px;border-radius:11px}
+  .mud-gate-status{margin-bottom:13px;padding:7px 9px;font-size:8.5px}
+  h1.big{font-size:25px;max-width:11.5em;margin-bottom:9px}
+  .lede{font-size:12.5px;line-height:1.68;margin-bottom:16px}
+  label.fl{margin-top:13px;margin-bottom:6px}
+  input.fi{min-height:46px;padding:11px 12px}
+  .pickgrid{gap:7px}
+  #pick-track{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #pick-bg{grid-template-columns:1fr}
+  .pick{min-height:64px;padding:10px 12px;border-radius:14px}
+  .pick b{font-size:12.5px;padding-right:11px}
+  .pick span{font-size:10px;line-height:1.45}
+  #pick-bg .pick{min-height:58px}
+  .cta{position:sticky;bottom:8px;z-index:4;min-height:50px;margin-top:17px;border-radius:16px}
+  .foot{font-size:9.5px;padding:12px 8px 20px}
+}
+@media(max-width:360px){
+  #bd-grid{grid-template-columns:repeat(2,1fr)}
+  #pick-track{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  .mud-led,.feed-live,.pick.sel::after,.yr-head::before,.tl.now .dot,.cta::after,#board::after{animation:none!important}
+}
+
+
+/* ===== V4.1 title cleanup ===== */
+#gate-in h1.big{
+  font-size:clamp(20px,6vw,30px);
+  font-weight:900;
+  line-height:1.18;
+  letter-spacing:-.035em;
+  white-space:nowrap;
+  text-wrap:nowrap;
+  max-width:none;
+  width:100%;
+  margin-bottom:14px;
+}
+#gate-in h1.big em{font-weight:900}
+@media(max-width:380px){
+  #gate-in h1.big{font-size:19px;letter-spacing:-.045em}
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="shell">
+    <aside id="left">
+      <div class="panel glass">
+        <div class="brand" style="margin-bottom:14px">
+          <div class="mark">Y</div>
+          <div><b>職場人生</b><span>CAREER SIM</span></div>
+        </div>
+        <h4>職涯軌跡</h4>
+        <div id="tl-wrap"></div>
+      </div>
+    </aside>
+
+    <main id="mid">
+      <header id="board" class="glass">
+        <div class="mud-hudline"><span><i class="mud-led"></i> 職涯世界 ONLINE</span><span class="mud-code">PLAYER STATUS</span></div>
+        <div id="bd-top">
+          <div id="bd-id">
+            <div id="bd-name">—</div>
+            <div id="bd-role">—</div>
+            <div id="bd-co"><i></i><span>—</span></div>
+          </div>
+          <button class="icon-btn" id="btn-ab" title="能力與特質">◎</button>
+          <button class="icon-btn" id="btn-menu" title="選單">≡</button>
+        </div>
+        <div id="bd-grid">
+          <div class="cell c-ovr"><b id="bd-ovr">—</b><span>綜合</span></div>
+          <div class="cell c-sal"><b id="bd-sal">—</b><span>年薪</span></div>
+          <div class="cell c-grade"><b id="bd-grade">—</b><span>績效</span></div>
+          <div class="cell c-burn"><b id="bd-burn">—</b><span>心力</span><i class="bar" id="bd-burnbar" style="width:0"></i></div>
+        </div>
+        <div id="bd-strip"></div>
+      </header>
+      <div class="feed-label"><span class="feed-live"></span><b>生涯動態</b><span>WORLD FEED</span></div>
+      <div id="log"></div>
+      <div id="act"></div>
+      <div class="foot">Yourator 職場人生模擬器　·　SEED <b id="ft-seed">—</b></div>
+    </main>
+
+    <aside id="right" class="right">
+      <div class="panel glass" id="pn-ab">
+        <h4>能力值</h4>
+        <svg id="radar" width="230" height="196" viewBox="0 0 230 196"></svg>
+        <div id="ab-list"></div>
+      </div>
+      <div class="panel glass" id="pn-tr" style="display:none">
+        <h4>隱藏特質</h4>
+        <div id="tr-list"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="modal"><div id="modal-box" class="glass"></div></div>
+
+<div id="gate">
+  <div id="gate-in" class="glass">
+    <div class="brand">
+      <div class="mark">Y</div>
+      <div><b>Yourator</b><span>職場人生模擬器</span></div>
+    </div>
+    <h1 class="big">你的職涯，會長成<em>什麼形狀</em>？</h1>
+    <p class="lede">從第一份工作開始，經歷升遷、跳槽、自由接案、倦怠、創業與轉身。能力靠擲骰累積，方向靠你自己選。同一組種子碼＋同樣的選擇＝同一段人生。</p>
+    <label class="fl">你的名字</label>
+    <input class="fi" id="in-name" maxlength="12" placeholder="輸入姓名">
+    <label class="fl">職涯軌道</label>
+    <div class="pickgrid" id="pick-track"></div>
+    <label class="fl">起手學經歷</label>
+    <div class="pickgrid" id="pick-bg"></div>
+    <label class="fl">種子碼（可留空隨機）</label>
+    <input class="fi" id="in-seed" maxlength="24" placeholder="例如：yourator2026">
+    <button class="cta" id="btn-start">開始這一生 →</button>
+  </div>
+</div>
+<script>
+/* =========================================================
+   Yourator 職場人生模擬器
+   邏輯架構參考 yakyulife（棒球生涯模擬器）的三階段循環、
+   擲骰加點、潛力天花板、事件卡、隱藏特質與生涯結算設計。
+   ========================================================= */
+
+/* ---------- 種子亂數 ---------- */
+let _s=0;
+function seedInit(str){ _s=1779033703; for(let i=0;i<str.length;i++){ _s=Math.imul(_s^str.charCodeAt(i),3432918353); _s=_s<<13|_s>>>19; } }
+function R(){ _s|=0; _s=_s+0x6D2B79F5|0; let t=Math.imul(_s^_s>>>15,1|_s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }
+const ri=(a,b)=>a+Math.floor(R()*(b-a+1));
+const pick=a=>a[Math.floor(R()*a.length)];
+const chance=p=>R()*100<p;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const N0=sd=>(R()+R()+R()+R()-2)/2*sd*2;
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } return a; }
+
+/* ---------- 能力值 ---------- */
+const AB=['craft','exec','comm','lead','learn','net','grit'];
+const ABL={craft:'專業力',exec:'執行力',comm:'溝通力',lead:'領導力',learn:'學習力',net:'影響力',grit:'心理韌性'};
+const ABD={
+  craft:'把事情做對的硬實力',exec:'把事情做完的推進力',comm:'把人對齊的表達力',
+  lead:'讓一群人變強的能力',learn:'吸收新事物的速度',net:'業界能見度與人脈',grit:'扛得住壓力的底盤'
+};
+
+/* ---------- 職涯軌道 ---------- */
+const TRACKS={
+  ENG:{n:'軟體工程',d:'寫程式、修系統、扛上線',
+    w:{craft:.29,exec:.21,learn:.17,comm:.12,lead:.10,net:.06,grit:.05},
+    mgr:['軟體工程師','工程師','資深工程師','技術主管','工程總監','技術副總','技術長 CTO'],
+    ic:['軟體工程師','工程師','資深工程師','Staff 工程師','首席工程師','傑出工程師','技術院士']},
+  PM:{n:'產品管理',d:'定義問題、對齊團隊、扛成敗',
+    w:{comm:.21,craft:.17,lead:.17,exec:.16,learn:.12,net:.12,grit:.05},
+    mgr:['產品專員','產品經理','資深產品經理','產品主管','產品總監','產品副總','產品長 CPO'],
+    ic:['產品專員','產品經理','資深產品經理','主任產品經理','首席產品經理','產品策略長','產品院士']},
+  DES:{n:'設計',d:'從體驗到介面，把感覺變成規格',
+    w:{craft:.30,comm:.18,learn:.16,exec:.16,net:.10,lead:.06,grit:.04},
+    mgr:['UI/UX 設計師','產品設計師','資深設計師','設計主管','設計總監','設計副總','設計長 CDO'],
+    ic:['UI/UX 設計師','產品設計師','資深設計師','主任設計師','首席設計師','設計顧問','設計院士']},
+  MKT:{n:'行銷成長',d:'把好東西讓對的人看見',
+    w:{net:.22,comm:.20,craft:.18,learn:.14,exec:.14,lead:.08,grit:.04},
+    mgr:['行銷企劃','行銷經理','資深行銷經理','行銷主管','行銷總監','行銷副總','行銷長 CMO'],
+    ic:['行銷企劃','成長行銷','資深成長行銷','主任成長專家','首席成長專家','成長顧問','行銷院士']},
+  BIZ:{n:'業務／商務開發',d:'找到人、談成事、把數字做出來',
+    w:{comm:.25,net:.23,exec:.16,craft:.13,lead:.10,grit:.08,learn:.05},
+    mgr:['業務專員','業務經理','資深業務經理','業務主管','業務總監','商務副總','營收長 CRO'],
+    ic:['業務專員','客戶經理','資深客戶經理','策略客戶經理','首席客戶總監','商務顧問','商務院士']},
+  OPS:{n:'營運／人資',d:'讓組織這台機器不要卡住',
+    w:{exec:.24,comm:.21,craft:.16,lead:.15,learn:.11,net:.08,grit:.05},
+    mgr:['營運專員','營運經理','資深營運經理','營運主管','營運總監','營運副總','營運長 COO'],
+    ic:['營運專員','營運夥伴','資深營運夥伴','主任營運夥伴','首席營運夥伴','組織顧問','營運院士']}
+};
+
+/* ---------- 起手學經歷 ---------- */
+const BGS={
+  NEW:{n:'一般大學畢業',d:'22 歲，什麼都不會，但什麼都想試',age:22,base:[24,32],mod:{},note:''},
+  TOP:{n:'頂大／海外學位',d:'22 歲，起薪好看，期待值也高',age:22,base:[26,34],mod:{craft:2,learn:2,net:2},note:'起薪係數 ×1.12'},
+  BOOT:{n:'轉職訓練營',d:'25 歲，繞了一段路才走到這裡',age:25,base:[22,29],mod:{learn:4,grit:5,craft:-2},note:'學習力與韌性起步高'},
+  GRAD:{n:'研究所畢業',d:'24 歲，論文寫到懷疑人生',age:24,base:[25,33],mod:{craft:4,learn:3,net:-3},note:'解鎖「學院派」路線'}
+};
+
+/* ---------- 職級階梯 ---------- */
+const TIERS=[
+  {k:'JR', n:'初階', avg:32, min:0,  base:52,  kk:2.5},
+  {k:'MID',n:'中階', avg:43, min:36, base:78,  kk:4},
+  {k:'SR', n:'資深', avg:54, min:46, base:118, kk:7},
+  {k:'LD', n:'主管級',avg:63,min:55, base:168, kk:11},
+  {k:'DR', n:'總監級',avg:71,min:64, base:275, kk:18},
+  {k:'VP', n:'副總級',avg:78,min:71, base:430, kk:30},
+  {k:'C',  n:'C-Level',avg:85,min:78,base:750, kk:52}
+];
+
+/* ---------- 公司類型 ---------- */
+const COT={
+  SEED:{n:'早期新創',sal:.85,grow:1.30,risk:.11,burn:1.28,eq:1.8,c:'#35e6c5',
+    names:['島嶼實驗室','微光科技','原點智能','拾光數位','山丘工作室','極光引擎','小行星科技']},
+  GROW:{n:'成長期新創',sal:1.0,grow:1.16,risk:.055,burn:1.16,eq:1.0,c:'#4d8dff',
+    names:['浪潮數位','星鏈科技','行舟科技','鹿角科技','藍鵲數位','真北科技','蜂鳥雲端']},
+  UNI:{n:'獨角獸／上市科技',sal:1.24,grow:1.05,risk:.03,burn:1.10,eq:.65,c:'#a98bff',
+    names:['迅雷雲','方舟智能','天工科技','玉衡數據','麒麟平台','光年網路']},
+  FOR:{n:'外商分公司',sal:1.40,grow:.98,risk:.085,burn:1.04,eq:.30,c:'#ffc978',
+    names:['Meridian 台灣','Aurora Labs 台北','Northwind 亞太','Vertex Taiwan','Halcyon 台灣分公司']},
+  CORP:{n:'傳統集團',sal:1.06,grow:.82,risk:.02,burn:.90,eq:0,c:'#93a0bd',
+    names:['泰宇集團','宏昇電子','聯泰工業','遠昇金控','國通電信','大川製造']},
+  AGY:{n:'代理商／接案公司',sal:.86,grow:1.02,risk:.06,burn:1.32,eq:0,c:'#ff7a8a',
+    names:['好日子創意','單位設計','第三象限','方格數位','火柴盒工作室']},
+  NPO:{n:'公部門／非營利',sal:.80,grow:.80,risk:.012,burn:.72,eq:0,c:'#7fe3a0',
+    names:['數位共好協會','城市數位辦公室','公民科技基金會','綠洲永續協會']}
+};
+const COT_KEYS=Object.keys(COT);
+
+/* 各軌道偏好的公司類型（找工作時的抽樣權重） */
+const TRACK_CO={
+  ENG:{SEED:1.1,GROW:1.3,UNI:1.2,FOR:1.1,CORP:.8,AGY:.6,NPO:.4},
+  PM:{SEED:1.0,GROW:1.3,UNI:1.2,FOR:1.0,CORP:.7,AGY:.6,NPO:.4},
+  DES:{SEED:1.1,GROW:1.2,UNI:.9,FOR:.7,CORP:.6,AGY:1.4,NPO:.5},
+  MKT:{SEED:1.0,GROW:1.2,UNI:1.0,FOR:1.0,CORP:.9,AGY:1.3,NPO:.6},
+  BIZ:{SEED:.9,GROW:1.2,UNI:1.1,FOR:1.3,CORP:1.1,AGY:.8,NPO:.4},
+  OPS:{SEED:.9,GROW:1.1,UNI:1.0,FOR:1.0,CORP:1.2,AGY:.8,NPO:.9}
+};
+
+/* ---------- 景氣循環 ---------- */
+const MACROS=[
+  {k:'BOOM',n:'熱錢年代',d:'資金滿手、到處都在搶人',hire:1.35,lay:.4,sal:1.15,c:'#35e6c5'},
+  {k:'WARM',n:'穩健成長',d:'不熱不冷，該做的還是要做',hire:1.05,lay:.9,sal:1.03,c:'#4d8dff'},
+  {k:'FLAT',n:'觀望盤整',d:'預算凍結，先做完再說',hire:.85,lay:1.15,sal:.97,c:'#93a0bd'},
+  {k:'COLD',n:'產業寒冬',d:'新聞每週都在寫裁員',hire:.55,lay:1.9,sal:.9,c:'#ff7a8a'}
+];
+
+/* ---------- 事件卡 ---------- */
+/* g: 好結果效果 / b: 壞結果效果，[[能力,值]...]；tag 用於特質計數 */
+const EVENTS=[
+  {t:'跨部門專案啟動',s:'PM 把你拉進一個橫跨三個部門的專案，沒有人真的知道誰該負責什麼。',
+   g:[['comm',2],['lead',1]],gt:'你在混亂中畫出了第一張權責圖，會議終於開得完。',
+   b:[['comm',-2]],bt:'三方各說各話，你夾在中間，最後被當成傳話筒。'},
+  {t:'Code Review 修羅場',tr:['ENG'],s:'資深同事在你的 PR 上留了 47 則留言。',
+   g:[['craft',2]],gt:'你一則一則改完，順手把整段邏輯重寫得更乾淨。',
+   b:[['craft',-1],['grit',-1]],bt:'你邊改邊懷疑自己，最後只把註解補一補就 merge 了。'},
+  {t:'公開簡報 Demo Day',s:'這次輪到你上台，台下坐著三個部門的主管。',
+   g:[['comm',2],['net',1]],gt:'你把複雜的東西講得像故事，散場後有人主動來加你 LinkedIn。',
+   b:[['comm',-2]],bt:'投影片跑版、時間爆掉，你講到最後只剩自己在聽。'},
+  {t:'導入新工具鏈',s:'團隊決定換掉用了五年的老系統，沒有人自願當第一隻白老鼠。',
+   g:[['learn',2],['exec',1]],gt:'你花了三個週末啃文件，變成全公司最懂它的人。',
+   b:[['exec',-2]],bt:'轉換期比想像中長，舊流程新流程都在跑，事情變成兩倍。'},
+  {t:'帶新人',s:'主管把一位新報到的夥伴交給你帶。',
+   g:[['lead',2]],gt:'三個月後他能獨立出貨了，還說很慶幸第一個帶他的人是你。',
+   b:[['lead',-1],['grit',-1]],bt:'你自己的事都做不完，只好讓他自己摸索，兩邊都卡住。'},
+  {t:'向上管理',s:'主管問你「這季你想拿下什麼」，這句話其實是一道考題。',
+   g:[['net',2],['comm',1]],gt:'你把想做的事翻譯成他在意的指標，資源就這樣要到了。',
+   b:[['net',-2]],bt:'你講了一堆執行細節，他聽完只說「你先做做看」。'},
+  {t:'客戶提案',tr:['BIZ','MKT','PM'],s:'對方窗口在會議前十分鐘說：老闆等下也會進來聽。',
+   g:[['net',2],['comm',1]],gt:'你當場改了切入角度，老闆聽完直接問「什麼時候可以開始」。',
+   b:[['net',-2]],bt:'簡報照原本講完，對方禮貌地說「再研究看看」。'},
+  {t:'數據會議',s:'週會上有人問：這個數字為什麼會這樣？全場看向你。',
+   g:[['craft',2]],gt:'你不只答出來，還順手指出另一個沒人注意到的漏洞。',
+   b:[['craft',-2]],bt:'你發現自己也不確定口徑，只能說「我回去確認一下」。'},
+  {t:'Side Project 上線',s:'你在下班後做的小東西，突然有人在社群上分享了。',
+   g:[['net',2],['craft',1]],gt:'一夜之間破萬次瀏覽，有獵頭因為這個找上你。',
+   b:[['grit',-2]],bt:'流量沒來，倒是連著三週睡不到六小時。'},
+  {t:'線上課程進修',s:'你買了一堂課，接下來就是能不能真的上完的問題。',
+   g:[['learn',2]],gt:'你不只上完，還做完全部作業，開始在工作裡用上。',
+   b:[['learn',-1],['grit',-1]],bt:'進度停在第三章，跟前面買的那五堂一樣。'},
+  {t:'加班潮',s:'季底衝刺，整層樓的燈到十一點都還亮著。',
+   g:[['exec',2]],gt:'你把節奏抓穩，該砍的砍、該延的延，準時把版本推出去。',
+   b:[['grit',-2],['exec',-1]],bt:'你陪著加班到最後，成果卻只是把爛攤子推遲了一季。'},
+  {t:'組織改組',s:'一封全員信，你的部門明天起換一個名字、換一個老闆。',
+   g:[['net',1],['grit',1]],gt:'你主動去跟新主管做了一次自我介紹，位置反而更好了。',
+   b:[['net',-2]],bt:'新的權力地圖畫出來，上面沒有你的名字。'},
+  {t:'遠端協作實驗',s:'團隊有一半的人在不同城市，同步開會變成一件奢侈的事。',
+   g:[['comm',2],['exec',1]],gt:'你把決策改成非同步文件流，大家反而更清楚彼此在幹嘛。',
+   b:[['exec',-2]],bt:'訊息越來越多、共識越來越少，事情在群組裡爛掉。'},
+  {t:'訂定年度 OKR',s:'主管把整個團隊的目標設定丟給你先擬一版。',
+   g:[['lead',2],['exec',1]],gt:'你寫出一版大家看得懂也願意扛的目標，季底真的達成了。',
+   b:[['lead',-2]],bt:'目標寫得漂亮，執行時沒有人記得，季底才發現全部歪掉。'},
+  {t:'上線危機',s:'半夜兩點，系統掛了，群組開始跳訊息。',
+   g:[['exec',2],['grit',1]],gt:'你冷靜地開了戰情室，天亮前修好，還寫了一份誠實的事故報告。',
+   b:[['grit',-2],['exec',-1]],bt:'你手忙腳亂地救了一整夜，隔天沒人記得問你睡了沒。'},
+  {t:'公開分享與社群經營',tag:'kol',s:'有社群邀你去講一場，題目是你最近在做的事。',
+   g:[['net',3]],gt:'講稿被整理成文章瘋傳，你的名字開始跟這個題目綁在一起。',
+   b:[['net',-1],['grit',-1]],bt:'準備了三週，現場來了十一個人，其中兩個是同事。'},
+  {t:'談加薪',s:'你算了算市場行情，決定敲一場一對一。',
+   g:[['net',1],['comm',1]],gt:'你把過去一年的貢獻攤開講，主管當場答應往上調。',
+   b:[['comm',-1]],bt:'你講到一半就開始道歉，最後聽到一句「明年再看看」。'},
+  {t:'資深同事離職交接',s:'公司裡最懂那套系統的人，遞了辭呈。',
+   g:[['craft',2],['exec',1]],gt:'你把交接文件補到比原本還完整，順勢接下那塊地盤。',
+   b:[['exec',-2],['grit',-1]],bt:'交接只做了一半人就走了，你花了半年在踩地雷。'},
+  {t:'遇見前輩',tag:'mentor',s:'一場聚會上，你認識了一位走過同樣路的前輩。',
+   g:[['rnd',2]],gt:'一句話點醒你卡了兩年的問題，你們約好每季聊一次。',
+   b:[['rnd',-1]],bt:'你聽了一整晚，發現他的路徑跟你的處境完全不同。'},
+  {t:'多元共融工作坊',s:'公司辦了一場關於共融與偏見的內訓，很多人請假沒去。',
+   g:[['lead',2],['comm',1]],gt:'你把學到的東西實際改進了團隊的面試流程，錄取樣貌變得更廣。',
+   b:[['lead',-1]],bt:'你去了，筆記寫得很滿，回到座位就沒有下文。'},
+  {t:'導入 AI 工具',s:'主管丟了一句：看看這個能不能幫我們省時間。',
+   g:[['learn',2],['craft',1]],gt:'你重新設計了工作流，團隊每週省下的時間開始有感。',
+   b:[['learn',-2]],bt:'工具導了、流程沒改，最後大家默默用回原本的方式。'},
+  {t:'跨國協作',s:'新專案的另一半團隊在時差七小時的地方。',
+   g:[['comm',2],['learn',1]],gt:'你把交接寫成規格，兩邊接力二十四小時不斷線。',
+   b:[['comm',-2]],bt:'文化與時差把訊息磨得面目全非，進度反覆重來。'},
+  {t:'擔任內部講師',s:'HR 問你要不要開一堂給全公司的課。',
+   g:[['net',2],['lead',1]],gt:'課後回饋滿分，你成了公司內部提到那個領域就會被想起的人。',
+   b:[['net',-1]],bt:'內容太深、時間太長，現場後排開始有人回訊息。'},
+  {t:'技術債大掃除',tr:['ENG','DES','OPS'],s:'那塊沒人敢碰的東西，終於排進了這季。',
+   g:[['craft',2],['exec',1]],gt:'你拆得乾淨俐落，後續開發速度整整快了一倍。',
+   b:[['exec',-2]],bt:'越拆越深，最後只好包一層新的邏輯上去。'},
+  {t:'品牌活動操盤',tr:['MKT','BIZ','OPS'],s:'一場對外活動落到你手上，預算不多，期待很高。',
+   g:[['net',2],['exec',1]],gt:'現場爆滿，後續三個月的名單都吃這一場的紅利。',
+   b:[['exec',-2]],bt:'流程出包，你在後台救火，照片裡都是你的背影。'},
+  {t:'職涯一對一',s:'主管問你：三年後你想在哪裡？',
+   g:[['rnd',2]],gt:'你認真想過這題，答得具體，他開始把機會往你這裡放。',
+   b:[['grit',-1]],bt:'你愣了三秒，說「我還沒想那麼遠」，話題就過去了。'},
+  {t:'流程自動化提案',tr:['OPS','ENG','PM'],s:'你發現有件事，全公司每個月都要手動做一次。',
+   g:[['exec',2],['craft',1]],gt:'自動化上線，每個月替公司省下一百多個工時。',
+   b:[['craft',-2]],bt:'例外狀況太多，自動化跑出來的東西還要人工對一次。'},
+  {t:'第一次帶團隊',s:'你手上突然多了三個人的績效要負責。',
+   g:[['lead',2],['comm',1]],gt:'你學會把功勞讓出去、把責任扛回來，團隊開始跑起來了。',
+   b:[['lead',-2],['grit',-1]],bt:'你什麼都想自己來，結果三個人閒著、你累垮。'}
+];
+
+/* ---------- 身分限定事件 ---------- */
+const FREE_EVENT_TITLES=new Set([
+  'Code Review 修羅場','客戶提案','數據會議','Side Project 上線','線上課程進修',
+  '遠端協作實驗','公開分享與社群經營','遇見前輩','跨國協作','品牌活動操盤'
+]);
+const FOUNDER_EVENT_TITLES=new Set([
+  '客戶提案','數據會議','導入新工具鏈','加班潮','上線危機',
+  '公開分享與社群經營','遇見前輩','跨國協作','第一次帶團隊','品牌活動操盤'
+]);
+const FREE_EVENTS=[
+  {t:'報價談判',s:'新客戶問：「如果長期合作，這個價格還有空間嗎？」',
+   g:[['comm',2],['net',1]],gt:'你把價格、範圍和修改次數講清楚，對方沒有砍價，反而直接簽了。',
+   b:[['comm',-1]],bt:'你怕案子跑掉，先自己打了八折，做到第三週就開始後悔。'},
+  {t:'需求突然翻盤',s:'做到七成時，客戶說高層剛改方向，希望「整個概念換一下」。',
+   g:[['exec',2],['comm',1]],gt:'你先重談範圍與時程，再把能沿用的部分拆出來，專案沒有失控。',
+   b:[['grit',-2],['exec',-1]],bt:'你沒有重談條件，只能默默把原本做好的東西收進資料夾。'},
+  {t:'老客戶轉介紹',s:'一個合作過兩次的客戶，把你介紹給另一間公司。',
+   g:[['net',3]],gt:'新案沒有比稿、沒有殺價，信任直接從上一段合作延續過來。',
+   b:[['net',-1]],bt:'期待被拉得太高，第一次會議反而有點接不住。'},
+  {t:'三個 Deadline 撞在一起',s:'三個客戶都覺得自己的案子「這週一定要」。',
+   g:[['exec',2],['grit',1]],gt:'你把優先級、交付物和回覆時段切乾淨，三邊都準時交件。',
+   b:[['exec',-2],['grit',-1]],bt:'你一直切換工作，最後每一案都只差那麼一點。'},
+  {t:'案源空窗',s:'行事曆突然空了下來。沒有主管催你，也沒有下一筆款項在路上。',
+   g:[['net',2],['learn',1]],gt:'你整理案例、主動聯絡舊客戶，兩週後新的合作開始進來。',
+   b:[['grit',-2]],bt:'你每天刷新信箱，越看越焦慮，卻沒有真的把自己推向市場。'},
+  {t:'作品被看見',s:'你把最近一個專案整理成案例分享，意外被業界帳號轉發。',
+   g:[['net',2],['craft',1]],gt:'詢問合作的訊息開始出現，你第一次感覺作品真的能替自己說話。',
+   b:[['grit',-1]],bt:'貼文反應普通，但你至少把散落的成果整理成了一份像樣的作品集。'}
+];
+const FOUNDER_EVENTS=[
+  {t:'關鍵客戶續約',s:'佔營收很高的客戶進入續約月，採購要求重新談條件。',
+   g:[['comm',2],['net',1]],gt:'你守住價格，也把合作範圍擴大，跑道多出幾個月。',
+   b:[['net',-2]],bt:'對方砍掉一半預算，你回到辦公室重新算了一次現金流。'},
+  {t:'核心人才想離開',s:'團隊裡最關鍵的人約你散步，第一句就是：「我最近在想下一步。」',
+   g:[['lead',2],['comm',1]],gt:'你沒有先談留人條件，而是先問他真正卡在哪。最後你們重做了角色設計。',
+   b:[['lead',-2]],bt:'你急著畫大餅，對方反而更確定自己該走。'},
+  {t:'投資人月報',s:'數字沒有達標，但董事會明早九點還是會準時開始。',
+   g:[['comm',2],['exec',1]],gt:'你把問題、假設和下一步拆得很清楚，沒有人因為壞消息失去信心。',
+   b:[['comm',-2]],bt:'你花太多時間解釋原因，會議結束時還是沒人知道接下來要做什麼。'},
+  {t:'產品方向大轉彎',s:'原本最有信心的方向沒有市場訊號，團隊開始討論要不要 pivot。',
+   g:[['learn',2],['lead',1]],gt:'你砍掉沉沒成本，重新聚焦一個更小但更真實的問題。',
+   b:[['grit',-2]],bt:'你捨不得放掉已經投入的半年，團隊又多繞了一季。'}
+];
+
+/* ---------- 生活事件 ---------- */
+const LIFE=[
+  {k:'gym',t:'健身計畫',c:s=>true,w:1,s:'你辦了健身房會員，這次想撐過第三個月。',
+   g:[['grit',2]],gt:'體能回來了，忙到晚上十點也不再覺得世界末日。',b:[['grit',-1]],bt:'第五次沒去之後，你把 App 通知關掉了。',burnG:-8,burnB:2,tag:'health'},
+  {k:'sleep',t:'睡眠債',c:s=>s.burn>=35,w:1.6,s:'你已經連續兩個月在凌晨兩點以後才闔眼。',
+   g:[['grit',1]],gt:'你狠下心把手機丟到客廳，作息一週內拉了回來。',b:[['grit',-2]],bt:'你告訴自己再撐一下，然後開始靠咖啡因過日子。',burnG:-14,burnB:12,tag:'health'},
+  {k:'trip',t:'把年假一次休完',c:s=>s.stage==='WORK'&&s.burn>=25,w:1.2,s:'你看著累積到快過期的年假，決定訂一張機票。',
+   g:[['grit',2],['learn',1]],gt:'十四天不看訊息。回來那天，你發現公司沒有你也沒有倒。',
+   b:[['grit',-1]],bt:'你人在海邊，筆電還是打開了三次。',burnG:-26,burnB:-6,tag:'rest'},
+  {k:'cert',t:'考證照／進修',c:s=>true,w:.9,s:'你報名了一張跟工作有關的證照考試。',
+   g:[['learn',2],['craft',1]],gt:'一次就過。名字後面多了幾個字母，履歷也多了一行。',
+   b:[['learn',-1]],bt:'考期到了，你連考古題都還沒翻完。',burnG:2,burnB:4},
+  {k:'family',t:'成家',c:s=>s.age>=26&&!s.married,w:1.1,s:'你和交往多年的另一半，開始認真討論下一步。',
+   g:[['grit',3]],gt:'你們決定一起走。從此加班的理由裡，多了一個要回去的地方。',
+   b:[],bt:'你們決定先各自把想做的事做完，這件事再說。',burnG:-10,burnB:0,tag:'marry'},
+  {k:'kid',t:'新成員報到',c:s=>s.married&&s.kids<3&&s.age>=28,w:1.0,s:'家裡即將多一個人。',
+   g:[['grit',3],['exec',1]],gt:'你學會了世界上最狠的時間管理：因為六點一定要走。',
+   b:[],bt:'你們決定再等一陣子，先把手上的事情告一段落。',burnG:6,burnB:0,tag:'kid'},
+  {k:'care',t:'照顧家人',c:s=>s.age>=40,w:.8,s:'家裡長輩身體出了狀況，需要有人排班。',
+   g:[['grit',2],['comm',1]],gt:'你重新排了工作節奏，把重要的事留在白天，也把家顧好了。',
+   b:[['grit',-2]],bt:'你兩頭燒了整整一年，兩邊都覺得自己做得不夠。',burnG:4,burnB:16},
+  {k:'side',t:'副業收入',c:s=>s.stage==='WORK'&&s.ab.net>=45,w:1.0,s:'有人願意付錢，請你做你本來就在做的事。',
+   g:[['net',2]],gt:'接案收入穩定下來，你第一次感覺到「不只有一個飯碗」。',
+   b:[['grit',-1]],bt:'案子接了，交期撞在一起，兩邊都做得普通。',burnG:4,burnB:10,money:1},
+  {k:'move',t:'搬家與通勤',c:s=>true,w:.7,s:'房東不續租，你得重新決定住在哪裡。',
+   g:[['grit',1],['exec',1]],gt:'新家離你最常工作的地方二十分鐘，你每天多睡了一小時。',
+   b:[['grit',-1]],bt:'租金省了，通勤變成單程七十分鐘。',burnG:-8,burnB:8},
+  {k:'freebreak',t:'主動留一段空檔',c:s=>s.stage==='FREE'&&s.burn>=25,w:1.35,s:'你第一次刻意讓行事曆空兩週，不排提案、不塞新案。',
+   g:[['grit',2]],gt:'沒有案子追著跑的第六天，你終於想起自由工作原本也包含「自由」。',
+   b:[['grit',-1]],bt:'你嘴上說休息，還是忍不住接了兩個急件。',burnG:-22,burnB:-4,tag:'rest'},
+  {k:'checkup',t:'健康檢查紅字',c:s=>s.burn>=55||s.age>=45,w:1.4,s:'體檢報告上，有幾個數字被標成紅色。',
+   g:[['grit',2]],gt:'你認真調整了作息與飲食，三個月後複檢全部回到綠色。',
+   b:[['grit',-3],['exec',-1]],bt:'你把報告收進抽屜，跟去年那份放在一起。',burnG:-18,burnB:14,tag:'health'},
+  {k:'mentee',t:'成為別人的前輩',c:s=>s.age>=30,w:.9,s:'有個後輩私訊你，問能不能跟你聊聊職涯。',
+   g:[['lead',2],['net',1]],gt:'你認真回了一封長訊息。兩年後，他成了你最想合作的夥伴。',
+   b:[['lead',-1]],bt:'你一直說改天再約，那個改天沒有來。',burnG:2,burnB:0},
+  {k:'community',t:'加入社群',c:s=>true,w:.9,s:'你被拉進一個同業的私密社群。',
+   g:[['net',2],['learn',1]],gt:'你在裡面認真回答問題，慢慢變成大家會 tag 的那個人。',
+   b:[['net',-1]],bt:'你潛水了兩年，一則訊息都沒發過。',burnG:0,burnB:2}
+];
+
+/* ---------- 隱藏特質 ---------- */
+const TR={
+  prodigy:{n:'學霸體質',tone:'rare',fx:'訓練骰永久 ≥4 點；事件卡好結果機率提升至 70%'},
+  late:{n:'大器晚成',tone:'rare',fx:'訓練骰永久 ≥3 點；事件卡好結果機率提升至 70%'},
+  steel:{n:'鋼鐵神經',tone:'pos',fx:'心力上限翻倍；硬撐成功率翻倍'},
+  disc:{n:'自律狂',tone:'pos',fx:'職涯衰退整體延後三年'},
+  kol:{n:'業界名人',tone:'pos',fx:'獵頭來訪機率翻倍；跳槽薪資 ×1.15'},
+  mentorMagnet:{n:'貴人磁鐵',tone:'pos',fx:'每年訓練骰 +1 顆'},
+  teamHeart:{n:'團隊之心',tone:'pos',fx:'升遷評議成功率 +18%'},
+  veteran:{n:'公司元老',tone:'pos',fx:'留任加薪係數 ≥1.2；結算 +260 分'},
+  academy:{n:'學院派',tone:'pos',fx:'30 歲前心力耗損 −15%；每年 35% 機率多擲一顆骰'},
+  phoenix:{n:'浴火重生',tone:'pos',fx:'覆蓋「過勞體質」，心力耗損回復正常，並獲得 8 點能力'},
+  polymath:{n:'斜槓達人',tone:'pos',fx:'副業與投資收益永久 +40%'},
+  legend:{n:'產業傳奇',tone:'rare',fx:'名人堂第一年即入選的稀有稱號'},
+  founder:{n:'創業者靈魂',tone:'rare',fx:'曾把一間公司從 0 帶到有人願意買單'},
+  burnout:{n:'過勞體質',tone:'neg',fx:'心力耗損永久 ×1.35'},
+  lone:{n:'獨行俠',tone:'neg',fx:'升遷評議成功率 −20%；跳槽條件變差'},
+  stuck:{n:'萬年基層',tone:'neg',fx:'事件卡失敗率 +8%'},
+  imposter:{n:'冒牌者症候群',tone:'neg',fx:'系統綜合評價 −3，直到升職或得獎才解除'},
+  drifter:{n:'職場浮萍',tone:'neg',fx:'跳槽薪資係數 ×0.85'},
+  onetrick:{n:'單一維度',tone:'neg',fx:'能力嚴重偏科，升遷評議與跳槽受限'},
+  freeloader:{n:'薪水小偷',tone:'neg',fx:'事件卡失敗率永久 +10%'}
+};
+
+/* ---------- 獎項 ---------- */
+const AWARDS={
+  rookie:{n:'年度最佳新人',p:220},
+  star:{n:'部門之星',p:130},
+  mvp:{n:'年度最佳夥伴 MVP',p:420},
+  proj:{n:'年度最佳專案',p:170},
+  ind:{n:'產業年度人物',p:340},
+  talk:{n:'受邀主題演講',p:95},
+  media:{n:'媒體專訪',p:110},
+  exit:{n:'公司成功出場',p:900},
+  ipo:{n:'選擇權兌現',p:320}
+};
+</script>
+<script>
+/* =========================================================
+   狀態與核心運算
+   ========================================================= */
+let S=null, stepQ=[], _curYearBody=null;
+const $=id=>document.getElementById(id);
+const MAXYR=10;
+
+function newState(name,track,bgk,seed){
+  const bg=BGS[bgk];
+  const ab={}; AB.forEach(k=>ab[k]=ri(bg.base[0],bg.base[1]));
+  Object.keys(bg.mod).forEach(k=>ab[k]=clamp(ab[k]+bg.mod[k],12,60));
+  /* 潛力天花板：一項頂尖、一項優質、一項中上，其餘平庸 */
+  const pot={}, ks=shuffle(AB.slice());
+  pot[ks[0]]=ri(80,96); pot[ks[1]]=ri(71,85); pot[ks[2]]=ri(63,77);
+  ks.slice(3).forEach(k=>pot[k]=ri(50,67));
+  AB.forEach(k=>pot[k]=Math.max(pot[k],ab[k]+4));
+  return {
+    name,track,bg:bgk,seed,
+    year:2026,age:bg.age,
+    ab,pot,carry:{},
+    stage:'WORK',        /* WORK / GAP / FOUNDER / FREE / STUDY */
+    tier:0, ladder:'—',
+    co:null, tenure:0, jobs:[],
+    salary:0, wealth:ri(8,30), equity:0, sideIncome:0,
+    burn:12, mode:'balance', rest:0,
+    lastD:0, lastGrade:'—', badYears:0, noPromo:0,
+    traits:{}, six:0, safeCnt:0, boldOK:0, boldFail:0,
+    kolCnt:0, mentorCnt:0, teamCnt:0, healthFail:0, gambleOK:0,
+    shortHops:0, hops:0, gapYears:0, burnouts:0,
+    married:false, kids:0, spouse:'',
+    awards:{}, score:0, hist:[], tl:[],
+    macro:MACROS[1], startAge:bg.age, done:false, endText:'', peakTier:0, peakSal:0
+  };
+}
+
+const TK=()=>TRACKS[S.track];
+const TIER=()=>TIERS[S.tier];
+function title(){
+  if(S.stage==='FOUNDER')return S.founder&&S.founder.exited?'創辦人（已出場）':'共同創辦人';
+  if(S.stage==='FREE')return '自由工作者';
+  if(S.stage==='STUDY')return '在學進修中';
+  if(S.stage==='GAP')return '待業中';
+  const arr=S.ladder==='IC'?TK().ic:TK().mgr;
+  return arr[S.tier];
+}
+function rawOvr(){ let v=0; const w=TK().w; AB.forEach(k=>v+=S.ab[k]*w[k]); return v; }
+function ovr(){ let v=rawOvr(); if(S.traits.imposter)v-=3; return Math.round(v); }
+function dVal(){ return ovr()-TIER().avg; }
+
+/* 成長成本（與 addAb 一致） */
+function abCost(k){
+  const v=S.ab[k]; let c=v<60?1:v<75?2:v<85?3:4;
+  if(v>=(S.pot[k]||60))c*=3;
+  return c;
+}
+function addAb(k,pts){
+  if(!(k in S.ab))return 0;
+  if(pts<0){ const b=S.ab[k]; S.ab[k]=clamp(S.ab[k]+pts,8,100); return S.ab[k]-b; }
+  S.carry[k]=(S.carry[k]||0)+pts;
+  let gain=0; S.lastOver=0;
+  while(S.ab[k]<100){
+    const c=abCost(k);
+    if(S.carry[k]<c)break;
+    S.carry[k]-=c; S.ab[k]++; gain++;
+  }
+  if(S.ab[k]>=100&&S.carry[k]>0){ S.lastOver=S.carry[k]; S.carry[k]=0; }
+  return gain;
+}
+function bumpRandom(v,exclude){
+  const c=AB.filter(k=>k!==exclude&&(v>0?S.ab[k]<100:S.ab[k]>10));
+  const k=pick(c); const g=addAb(k,v);
+  return {k,g};
+}
+
+/* 薪資 */
+function coMult(){ return S.co?COT[S.co.type].sal:1; }
+function baseSalary(){
+  const t=TIER(), d=clamp(dVal(),-12,26);
+  let s=(t.base+d*t.kk)*coMult()*(0.94+S.macro.sal*.06);
+  if(S.bg==='TOP'&&S.age<=27)s*=1.10;
+  return Math.max(t.base*0.62,Math.round(s));
+}
+const fmtM=w=>{ w=Math.round(w); return w>=10000?(w/10000).toFixed(w>=100000?0:2).replace(/\.00$/,'')+' 億':w.toLocaleString(); };
+const money=w=>fmtM(w)+' 萬';
+
+/* 心力（倦怠量表） */
+function burnCap(){ return S.traits.steel?150:100; }
+function burnAccrue(){
+  const modeM=S.mode==='sprint'?1.55:S.mode==='chill'?0.55:1;
+  const co=S.co?COT[S.co.type].burn:(S.stage==='FOUNDER'?1.45:S.stage==='FREE'?0.9:1);
+  let v=(5.5+S.tier*1.7)*modeM*co*(1.32-S.ab.grit/150);
+  if(S.traits.burnout&&!S.traits.phoenix)v*=1.35;
+  if(S.traits.academy&&S.age<30)v*=0.85;
+  if(S.kids>0)v*=1.08;
+  const rec=S.mode==='chill'?11:S.mode==='balance'?5:0;
+  return Math.round(v-rec);
+}
+function addBurn(v){ S.burn=clamp(S.burn+v,0,burnCap()+40); }
+
+/* 事件卡成功率 */
+function evOdds(base){
+  let p=base;
+  if(S.traits.prodigy||S.traits.late)p=Math.max(p,70);
+  if(S.traits.stuck)p-=8;
+  if(S.traits.freeloader)p-=10;
+  if(S.burn>=70)p-=8; else if(S.burn>=50)p-=4;
+  return clamp(p,15,92);
+}
+
+/* =========================================================
+   介面
+   ========================================================= */
+function board(){
+  if(!S)return;
+  $('bd-name').innerHTML=`${S.name}<em>${S.year} · ${S.age}歲</em>`;
+  const lad=S.stage==='WORK'?`　${TIER().n}${S.ladder==='IC'?'（專業職）':S.ladder==='MGR'?'（管理職）':''}`:'';
+  $('bd-role').textContent=title()+lad;
+  const co=$('bd-co');
+  if(S.co){ co.style.display='inline-flex';
+    co.querySelector('span').textContent=S.co.name;
+    co.querySelector('i').style.background=COT[S.co.type].c;
+  } else { co.style.display='inline-flex';
+    co.querySelector('span').textContent=S.stage==='GAP'?'待業中':S.stage==='FOUNDER'?(S.founder?S.founder.name:'自己的公司'):S.stage==='FREE'?'自由接案':'—';
+    co.querySelector('i').style.background='#93a0bd'; }
+  $('bd-ovr').textContent=ovr();
+  $('bd-sal').textContent=S.salary?money(S.salary).replace(' 萬','萬'):'—';
+  $('bd-sal').nextElementSibling.textContent=S.stage==='FREE'?'年收入':S.stage==='FOUNDER'?'創辦人年收':'年薪';
+  const g=$('bd-grade'); g.textContent=S.lastGrade; g.className='';
+  $('bd-grade').nextElementSibling.textContent=S.stage==='FREE'?'市場評價':S.stage==='FOUNDER'?'里程碑':'績效';
+  $('bd-grade').parentElement.querySelector('b').style.color=
+    ({S:'#d99318',A:'#12b8a6',B:'#006bff',C:'#667085',D:'#df5b70'})[S.lastGrade]||'#667085';
+  const bp=Math.round(S.burn/burnCap()*100);
+  $('bd-burn').textContent=bp+'%';
+  $('bd-burn').style.color=bp>=80?'#df5b70':bp>=55?'#d99318':'#172033';
+  $('bd-burnbar').style.width=Math.min(100,bp)+'%';
+  $('ft-seed').textContent=S.seed;
+  renderAb(); renderTraits(); renderTL();
+}
+
+function renderAb(){
+  const box=$('ab-list'); if(!box)return;
+  const w=TK().w;
+  box.innerHTML=AB.map(k=>{
+    const v=S.ab[k],p=S.pot[k],cap=v>=p;
+    return `<div class="ab${cap?' cap':''}"><div class="t"><span>${ABL[k]}<i style="font-style:normal;opacity:.5;font-size:10px"> ·${Math.round(w[k]*100)}%</i></span><b>${v}<i style="font-style:normal;color:var(--dim);font-weight:400;font-size:10.5px"> /${p}</i></b></div>
+    <div class="track"><i style="width:${v}%"></i><u style="left:calc(${p}% - 1px)"></u></div></div>`;
+  }).join('');
+  radar();
+}
+function radar(){
+  const el=$('radar'); if(!el)return;
+  const cx=115,cy=98,rr=72,n=AB.length;
+  const pt=(i,r)=>{ const a=-Math.PI/2+i*2*Math.PI/n; return [cx+Math.cos(a)*r,cy+Math.sin(a)*r]; };
+  let g='';
+  [.25,.5,.75,1].forEach(f=>{
+    g+=`<polygon points="${AB.map((_,i)=>pt(i,rr*f).map(x=>x.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="rgba(102,112,133,${f===1?.28:.12})" stroke-width="1"/>`;
+  });
+  const potPts=AB.map((k,i)=>pt(i,rr*clamp(S.pot[k],0,100)/100).map(x=>x.toFixed(1)).join(',')).join(' ');
+  const abPts=AB.map((k,i)=>pt(i,rr*clamp(S.ab[k],0,100)/100).map(x=>x.toFixed(1)).join(',')).join(' ');
+  g+=`<polygon points="${potPts}" fill="rgba(217,147,24,.06)" stroke="rgba(217,147,24,.34)" stroke-width="1" stroke-dasharray="3 3"/>`;
+  g+=`<defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#006bff"/><stop offset="1" stop-color="#12b8a6"/></linearGradient></defs>`;
+  g+=`<polygon points="${abPts}" fill="url(#rg)" fill-opacity=".34" stroke="url(#rg)" stroke-width="2" stroke-linejoin="round"/>`;
+  AB.forEach((k,i)=>{ const [x,y]=pt(i,rr+15);
+    g+=`<text x="${x.toFixed(1)}" y="${(y+3.5).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#667085" font-family="var(--sans)">${ABL[k].slice(0,2)}</text>`; });
+  el.innerHTML=g;
+}
+function renderTraits(){
+  const keys=Object.keys(S.traits).filter(k=>S.traits[k]!=='hidden');
+  const box=$('tr-list'),pn=$('pn-tr'); if(!box)return;
+  const live=keys.filter(k=>S.traits[k]);
+  const dead=keys.filter(k=>!S.traits[k]&&S.traits[k]===false&&S._hadTrait&&S._hadTrait[k]);
+  if(!live.length&&!dead.length){ pn.style.display='none'; return; }
+  pn.style.display='block';
+  const row=(k,gone)=>`<div class="trait-row${gone?' gone':''}"><span class="tag ${TR[k].tone}">${TR[k].n}</span><span class="d">${TR[k].fx}</span></div>`;
+  box.innerHTML=live.map(k=>row(k,false)).join('')+dead.map(k=>row(k,true)).join('');
+  if(typeof polishOrphans==='function')polishOrphans(box);
+}
+function traitCard(k,txt){
+  if(S.traits[k])return;
+  S.traits[k]=true; S._hadTrait=S._hadTrait||{}; S._hadTrait[k]=true;
+  const t=TR[k];
+  card(t.tone==='neg'?'bad':'gold',(t.tone==='neg'?'隱藏特質觸發：':'隱藏特質解鎖：')+t.n,`${txt}<div class="sub">效果：${t.fx}</div>`);
+  board();
+}
+function removeTrait(k,txt){
+  if(!S.traits[k])return;
+  S.traits[k]=false;
+  card('good','特質解除：'+TR[k].n,txt); board();
+}
+
+/* 記錄卡 */
+function logTarget(){ return _curYearBody||$('log'); }
+function card(cls,t,html){
+  const d=document.createElement('div');
+  d.className='card glass '+(cls||'');
+  d.innerHTML=(t?`<h3><span class="dot"></span>${t}</h3>`:'')+`<p>${html}</p>`;
+  logTarget().appendChild(d);
+  scrollBottom(); return d;
+}
+function divider(t){
+  const log=$('log');
+  const blocks=log.querySelectorAll('.yr-block');
+  if(blocks.length>=2)blocks[blocks.length-2].classList.add('collapsed');
+  const b=document.createElement('div'); b.className='yr-block';
+  const h=document.createElement('div'); h.className='yr-head'; h.textContent=t;
+  const body=document.createElement('div'); body.className='yr-body';
+  h.onclick=()=>b.classList.toggle('collapsed');
+  b.appendChild(h); b.appendChild(body); log.appendChild(b);
+  _curYearBody=body;
+  const all=log.querySelectorAll('.yr-block');
+  if(all.length>MAXYR)for(let i=0;i<all.length-MAXYR;i++)all[i].remove();
+}
+function scrollBottom(){
+  requestAnimationFrame(()=>{ window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); });
+}
+function actClear(){ $('act').innerHTML=''; }
+function choose(t,opts){
+  const a=$('act'); a.innerHTML='';
+  if(t){ const h=document.createElement('div'); h.className='act-title'; h.textContent=t; a.appendChild(h); }
+  opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='opt'+(o.main?' main':'')+(o.warn?' warn':'')+(o.gold?' gold':'');
+    b.style.animationDelay=(i*55)+'ms';
+    b.innerHTML=`<span class="shine"></span>${o.t}${o.pill?`<span class="pill">${o.pill}</span>`:''}${o.s?`<small>${o.s}</small>`:''}`;
+    b.onclick=()=>{ if(b.dataset.gone)return; b.dataset.gone=1; if(navigator.vibrate)navigator.vibrate(12); b.classList.add('confirmed'); actClear(); o.f(); };
+    a.appendChild(b);
+  });
+  polishOrphans(a);
+  scrollBottom();
+}
+function next(t,f){ choose('',[{t:t||'▸ 繼續',main:true,f}]); }
+
+/* 時間軸 */
+function tlPush(){ S.tl.push({y:S.year,age:S.age,note:''}); }
+function tlNote(txt,pri){
+  const e=S.tl[S.tl.length-1]; if(!e)return;
+  if(!e.note||(pri||1)>=(e.pri||0)){ e.note=txt; e.pri=pri||1; }
+}
+function renderTL(){
+  const w=$('tl-wrap'), strip=$('bd-strip'); if(!w)return;
+  const items=S.tl.slice(-40);
+  w.innerHTML=items.map((e,i)=>`<div class="tl${i===items.length-1?' now':''}"><span class="dot"></span><div><b>${e.y}</b>${e.note||(e.age+' 歲')}</div></div>`).join('');
+  w.scrollTop=w.scrollHeight;
+  strip.innerHTML=items.slice(-14).map((e,i,ar)=>`<span class="chip${i===ar.length-1?' now':''}">${e.y}　${e.note||e.age+'歲'}</span>`).join('');
+  strip.scrollLeft=strip.scrollWidth;
+}
+
+/* Modal */
+function modal(html){ $('modal-box').innerHTML=html; $('modal').classList.add('show'); }
+function modalClose(){ $('modal').classList.remove('show'); }
+$('modal').addEventListener('click',e=>{ if(e.target.id==='modal')modalClose(); });
+
+/* 擲骰分配 UI */
+function allocUI(dice,label,done){
+  const a=$('act'); a.innerHTML='';
+  let idx=0;
+  const wrap=document.createElement('div');
+  wrap.className='card glass';
+  a.appendChild(wrap);
+  function render(){
+    const cur=dice[idx];
+    wrap.innerHTML=`<h3><span class="dot"></span>${label}</h3>
+      <p class="sub" style="margin-top:0">點選骰子下方的能力列即可投入。剩餘 <b class="hl">${dice.length-idx}</b> 顆。成長成本：60 以下 1 點／60–74 需 2 點／75–84 需 3 點／85 以上 4 點；超過潛力天花板成本 ×3。</p>
+      <div id="dice-tray">${dice.map((v,i)=>`<div class="die${i===idx?' on':''}${i<idx?' used':''}">${v}</div>`).join('')}</div>
+      <div id="alloc-rows">${AB.map(k=>{
+        const v=S.ab[k],p=S.pot[k],c=abCost(k),full=v>=100;
+        return `<div class="alloc-row${full?' full':''}" data-k="${k}">
+          <span class="nm">${ABL[k]}</span>
+          <span class="track"><i style="width:${v}%"></i><u style="left:calc(${p}% - 1px)"></u></span>
+          <span class="vv"><b>${v}</b> ／${p}　<i style="font-style:normal">${c}pt</i></span></div>`;
+      }).join('')}</div>`;
+    wrap.querySelectorAll('.alloc-row').forEach(r=>{
+      r.onclick=()=>{
+        const k=r.dataset.k;
+        const g=addAb(k,cur);
+        const ov=S.lastOver||0;
+        if(ov>0)S.pendBonus=(S.pendBonus||0)+ov;
+        idx++;
+        card('', null, `<b class="hl">${cur}</b> 點投入 <b>${ABL[k]}</b>：${g>0?`<b class="up">+${g}</b> → ${S.ab[k]}`:'累積於蓄力槽（尚不足以提升一級）'}${ov>0?`（已達 100，溢出 ${ov} 點轉為<b class="up">當年表現加成</b>）`:''}`);
+        board();
+        if(idx>=dice.length){ a.innerHTML=''; done(); } else render();
+      };
+    });
+  }
+  render(); scrollBottom();
+}
+</script>
+<script>
+/* =========================================================
+   年度循環
+   ========================================================= */
+function stageLabel(){
+  if(S.stage==='GAP')return '待業期';
+  if(S.stage==='FOUNDER')return '創業期';
+  if(S.stage==='FREE')return '自由工作期';
+  if(S.stage==='STUDY')return '進修年';
+  return TIER().n;
+}
+function nextStep(){ if(S.done){stepQ=[];return;} const f=stepQ.shift(); if(f)f(); }
+function runQ(list,done){
+  const go=()=>{ const f=list.shift(); if(!f)return done(); f(go); };
+  go();
+}
+function startYear(){
+  if(S.done)return;
+  stepQ=[phasePre,phaseMid,phaseEnd];
+  divider(`${S.year} 年 · ${S.age} 歲 · ${stageLabel()}`);
+  tlPush(); tlNote(`${S.age} 歲 ${S.co?S.co.name:stageLabel()}`,0);
+  board(); nextStep();
+}
+
+/* ---------- 景氣 ---------- */
+function rollMacro(){
+  const cur=S.macro.k;
+  const trans={BOOM:['BOOM','WARM','WARM','FLAT'],WARM:['BOOM','WARM','WARM','FLAT','FLAT'],
+    FLAT:['WARM','FLAT','FLAT','COLD','COLD'],COLD:['FLAT','FLAT','COLD','WARM']};
+  const nk=pick(trans[cur]);
+  const m=MACROS.find(x=>x.k===nk);
+  const changed=nk!==cur;
+  S.macro=m;
+  if(changed||S.age===S.startAge)
+    card('info','產業景氣：'+m.n,`${m.d}。<div class="sub">徵才熱度 ×${m.hire}　·　裁員風險 ×${m.lay}　·　薪資行情 ×${m.sal}</div>`);
+}
+
+/* ---------- 年初 ---------- */
+function phasePre(){
+  board();
+  if(S.age>=65){ return endGame('屆齡退休。你在 '+S.year+' 年交出了最後一份工作。'); }
+  rollMacro();
+  applyDecline();
+  if(S.rest>0){
+    S.rest--; S.skipMid=true;
+    card('bad','休養年',`身體與心理都拉了警報，這一年你退出了戰場。收入僅剩基本保障，訓練骰減為 <b>2</b> 顆。<div class="sub">「不是每一年都要往前。有些年，是為了讓後面的年還走得動。」</div>`);
+  }
+  const goDice=()=>rollDice(()=>nextStep());
+  if(S.stage==='GAP')return jobSearch(()=>goDice());
+  if(S.stage==='STUDY')return goDice();
+  if(S.stage==='FOUNDER')return goDice();
+  retireOffer(()=>lifeBranch(()=>modeChoice(goDice)));
+}
+function applyDecline(){
+  const a=S.age-(S.traits.disc?3:0);
+  if(a<45)return;
+  const heavy=a>=55;
+  const list=heavy?[['learn',-3],['exec',-2],['craft',-2]]:[['learn',-2],['exec',-1]];
+  const txt=[];
+  list.forEach(([k,v])=>{ addAb(k,v); txt.push(`${ABL[k]} <b class="dn">${v}</b>`); });
+  let up='';
+  if(S.tier>=3&&S.ab.net<100){ addAb('net',1); up=`　但 ${ABL.net} <b class="up">+1</b>——年紀換來的東西，也不是沒有。`; }
+  card('bad',heavy?'體力的第二道坎':'反應速度開始跟不上',
+    `${heavy?'熬夜的代價變得具體，新東西學起來比從前吃力。':'你發現自己需要更長的時間，才能吸收一個新框架。'}${txt.join('、')}。${up}${S.traits.disc?'<div class="sub">自律狂：整條衰退曲線延後三年。</div>':''}`);
+}
+function retireOffer(cb){
+  if(S.stage!=='WORK'&&S.stage!=='FREE')return cb();
+  const fi=S.wealth>=2200;
+  if(S.age<48&&!(fi&&S.age>=42))return cb();
+  const opts=[{t:S.stage==='FREE'?'維持現在的案量':'再戰一年',main:true,s:S.stage==='FREE'?'自由還在，暫時不急著收山':'還沒到停下來的時候',f:cb}];
+  if(fi)opts.push({t:'提前退休',gold:true,s:`資產 ${money(S.wealth)}，被動收入足以覆蓋生活`,
+    f:()=>endGame(`${S.age} 歲那年，你算完最後一次資產表，決定把時間買回來。`)});
+  if(S.stage==='WORK'&&S.age>=55)opts.push({t:'轉任顧問／講師',s:'離開全職，把經驗換成另一種收入',
+    f:()=>{ leaveJob('consulting'); S.stage='FREE'; card('good','轉身',`你交出了名片上的頭銜，改成一週去兩間公司、講四場課。<div class="sub">收入會少一些，但行事曆終於是自己的。</div>`); cb(); }});
+  if(S.age>=58)opts.push({t:'宣布退休',warn:true,s:'把位置讓出來',
+    f:()=>endGame(`${S.year} 年，你在最後一次全員會議上說了謝謝，然後把門帶上。`)});
+  choose(`${S.age} 歲了，你想怎麼走下一段？`,opts);
+}
+function lifeBranch(cb){
+  if(S.stage!=='WORK')return cb();
+  if(S.age<28||S.age>52||!chance(16))return cb();
+  const opts=[{t:'維持現在的路',main:true,s:'把手上的事做完，比較實在',f:cb}];
+  if(S.ab.net>=48&&S.age<=48)opts.push({t:'加入朋友的創業團隊',gold:true,
+    s:'薪水砍半、股份給你，成敗自負',f:()=>startFounder(cb)});
+  if(S.ab.craft>=52&&S.ab.net>=45)opts.push({t:'離職接案，自己開工作室',
+    s:'收入隨能力浮動，時間自己排',f:()=>{ leaveJob('freelance'); S.stage='FREE';
+      card('info','自由工作者',`你把最後一天的東西收進紙箱，走出大樓時外面在下雨，但你笑得很開。`); tlNote('轉為自由接案',3); board(); cb(); }});
+  if(S.age<=42)opts.push({t:'留職停薪去進修',s:'一年不賺錢，換一次認知升級',
+    f:()=>{ S.stage='STUDY'; S.studyBack={co:S.co,tier:S.tier}; S.co=null;
+      card('info','進修年',`你把一年的時間押在課堂與圖書館。<div class="sub">這一年沒有收入，但訓練骰會多 3 顆，而且點數更飽滿。</div>`); tlNote('進修年',3); cb(); }});
+  choose('人生的岔路口',opts);
+}
+function modeChoice(cb){
+  if(S.stage!=='WORK'&&S.stage!=='FREE'&&S.stage!=='FOUNDER')return cb();
+  const st=S.burn>=80?'快燒完了':S.burn>=55?'有點疲乏':S.burn>=30?'還撐得住':'狀態飽滿';
+  choose(`本年工作節奏（目前心力：${st}）`,[
+    {t:'全力衝刺',warn:true,s:'表現與升遷機會最好｜心力耗損 ×1.55',f:()=>{S.mode='sprint';cb();}},
+    {t:'穩定輸出',main:true,s:'標準節奏｜心力小幅回復',f:()=>{S.mode='balance';cb();}},
+    {t:'保留餘裕',s:'表現保守｜心力明顯回復',f:()=>{S.mode='chill';cb();}}
+  ]);
+}
+function rollDice(done){
+  let n;
+  if(S.rest>0||S.skipMid)n=2;
+  else{ const r=R(); n=r<.35?3:r<.75?4:r<.95?5:6; }
+  if(S.stage==='STUDY')n+=3;
+  if(S.traits.mentorMagnet)n++;
+  if(S.traits.academy&&chance(35))n++;
+  const dice=[]; let six=0;
+  for(let i=0;i<n;i++){
+    const v=S.traits.prodigy?ri(4,6):(S.traits.late||S.stage==='STUDY')?ri(3,6):ri(1,6);
+    dice.push(v); if(v===6&&S.age<27&&!S.traits.prodigy){S.six++;six++;}
+  }
+  let msg=`本年可投入的自我投資：擲出 <b class="hl">${n}</b> 顆骰（${dice.join('、')}）。`;
+  if(six&&!S.traits.prodigy)msg+=`　高標值「6」累計 <b class="hl">${S.six}/6</b> 次。`;
+  card('','年初 · 自我投資',msg);
+  const sum=dice.reduce((a,b)=>a+b,0);
+  if(S.six>=6&&!S.traits.prodigy&&S.age<27){
+    const cands=shuffle(AB.filter(k=>S.ab[k]<80)).slice(0,2), bl=[];
+    cands.forEach(k=>{ S.pot[k]=Math.min(100,S.pot[k]+10); addAb(k,5); bl.push(`${ABL[k]} 潛力上限 +10`); });
+    traitCard('prodigy',`27 歲前六度擲出高標值。你吸收東西的速度，跟身邊的人不在同一個尺度上。${bl.length?'　'+bl.join('、')+'。':''}`);
+  }
+  if(!S.traits.prodigy&&!S.traits.late&&S.age>=32&&S.age<=46&&ovr()<52&&sum>=18){
+    const cands=shuffle(AB.filter(k=>S.ab[k]<80)).slice(0,2);
+    cands.forEach(k=>{ S.pot[k]=Math.min(100,S.pot[k]+10); addAb(k,4); });
+    traitCard('late','前面那些年不是白走的。三十歲後你突然抓到了學習的節奏，別人開始追不上你。');
+  }
+  allocUI(dice,'分配今年的自我投資',done);
+}
+
+/* ---------- 年中 ---------- */
+function phaseMid(){
+  board();
+  if(S.skipMid){ S.skipMid=false; return nextStep(); }
+  lifeEvent(()=>drawEvents(S.stage==='WORK'?3:2,()=>{
+    next('▸ 年中心力盤點',()=>burnCheck(()=>next('▸ 查看本年成果',()=>nextStep())));
+  }));
+}
+const TEAM_EV=['帶新人','第一次帶團隊','擔任內部講師','多元共融工作坊'];
+function drawEvents(n,cb){
+  if(n<=0)return cb();
+  const trackOK=e=>!e.tr||e.tr.includes(S.track);
+  let pool;
+  if(S.stage==='FREE') pool=EVENTS.filter(e=>trackOK(e)&&FREE_EVENT_TITLES.has(e.t)).concat(FREE_EVENTS.filter(trackOK));
+  else if(S.stage==='FOUNDER') pool=EVENTS.filter(e=>trackOK(e)&&FOUNDER_EVENT_TITLES.has(e.t)).concat(FOUNDER_EVENTS.filter(trackOK));
+  else pool=EVENTS.filter(trackOK);
+  const e=pick(pool);
+  const base=evOdds(56);
+  const run=(kind)=>{
+    const p=kind==='safe'?base+20:kind==='bold'?base-15:base;
+    const ok=chance(clamp(p,10,95));
+    const f=kind==='safe'?0.5:kind==='bold'?1.5:1;
+    if(kind==='safe')S.safeCnt++;
+    if(kind==='bold'){ if(ok)S.boldOK++; else S.boldFail++; }
+    const eff=ok?e.g:e.b, lines=[];
+    eff.forEach(([k,v])=>{
+      const dv=v>0?Math.max(1,Math.round(v*f)):Math.min(-1,Math.round(v*f));
+      if(k==='rnd'){ const r=bumpRandom(dv); lines.push(`${ABL[r.k]} <b class="${dv>0?'up':'dn'}">${dv>0?'+':''}${dv}</b>`); }
+      else{ const g=addAb(k,dv); lines.push(`${ABL[k]} <b class="${dv>0?'up':'dn'}">${dv>0?'+':''}${dv}</b>${dv>0&&g===0?'（蓄力）':''}`); }
+    });
+    if(ok&&e.tag==='kol')S.kolCnt++;
+    if(ok&&e.t==='遇見前輩')S.mentorCnt++;
+    if(ok&&TEAM_EV.includes(e.t))S.teamCnt++;
+    if(ok&&e.t==='談加薪'&&S.salary){ S.salary=Math.round(S.salary*1.06); lines.push(`年薪 <b class="up">+6%</b>`); }
+    addBurn(kind==='bold'?4:kind==='safe'?1:2);
+    card(ok?'good':'bad',e.t+(ok?'　·　成了':'　·　沒成'),
+      `${ok?e.gt:e.bt}<div class="sub">${lines.join('　')}</div>`);
+    checkEventTraits();
+    board();
+    setTimeout(()=>drawEvents(n-1,cb),40);
+  };
+  card('info',e.t,e.s);
+  choose('',[
+    {t:'穩健應對',s:`成功率 ${clamp(base+20,10,95)}%｜效果減半，風險最低`,f:()=>run('safe')},
+    {t:'照常執行',main:true,s:`成功率 ${base}%｜標準效果`,f:()=>run('normal')},
+    {t:'全力一搏',warn:true,s:`成功率 ${clamp(base-15,10,95)}%｜效果 ×1.5`,f:()=>run('bold')}
+  ]);
+}
+function checkEventTraits(){
+  if(S.kolCnt>=4&&!S.traits.kol)traitCard('kol','你講的東西開始被整理成筆記轉貼。業界提到這個題目，會先想到你的名字。');
+  if(S.mentorCnt>=3&&!S.traits.mentorMagnet)traitCard('mentorMagnet','你總是能遇到願意拉你一把的人——因為你每次都認真聽，也認真回。');
+  if(S.teamCnt>=8&&!S.traits.teamHeart&&!S.traits.lone)traitCard('teamHeart','跟你共事過的人，後來都變得更好。這件事在圈子裡是傳得開的。');
+  if(S.boldFail>=14&&!S.traits.lone)traitCard('lone','你習慣自己扛、自己衝，也習慣了失敗自己收。久了，沒有人再主動跟你組隊。');
+  if(S.safeCnt>=15&&S.age<34&&S.healthFail<3&&!S.traits.disc)
+    traitCard('disc','你不賭。你只是每天固定睡七小時、固定運動、固定把事情做完。十年後這件事開始有複利。');
+}
+
+/* ---------- 生活事件 ---------- */
+function lifeEvent(cb){
+  if(!chance(52))return cb();
+  const pool=LIFE.filter(e=>e.c(S));
+  if(!pool.length)return cb();
+  const bag=[]; pool.forEach(e=>{ for(let i=0;i<Math.round((e.w||1)*10);i++)bag.push(e); });
+  const e=pick(bag);
+  const p=clamp(evOdds(52)+Math.round(S.ab.grit/9),15,92);
+  const apply=(ok)=>{
+    const lines=[];
+    (ok?e.g:e.b).forEach(([k,v])=>{
+      if(k==='rnd'){const r=bumpRandom(v);lines.push(`${ABL[r.k]} <b class="${v>0?'up':'dn'}">${v>0?'+':''}${v}</b>`);}
+      else{addAb(k,v);lines.push(`${ABL[k]} <b class="${v>0?'up':'dn'}">${v>0?'+':''}${v}</b>`);}
+    });
+    const bv=ok?e.burnG:e.burnB; addBurn(bv||0);
+    if(bv)lines.push(`心力 <b class="${bv<0?'up':'dn'}">${bv<0?'':'+'}${bv}</b>`);
+    if(ok&&e.tag==='marry'){ S.married=true; S.spouse=pick(['小葵','阿哲','Ray','宜庭','子謙','Nina']); }
+    if(ok&&e.tag==='kid'){ S.kids++; }
+    if(!ok&&e.tag==='health')S.healthFail++;
+    if(ok&&e.money){ const inc=Math.round((S.ab.net+S.ab.craft)*(S.traits.polymath?0.55:0.4)); S.sideIncome+=inc;
+      lines.push(`副業年收 <b class="up">+${inc} 萬</b>`);
+      if(S.sideIncome>=120&&!S.traits.polymath)traitCard('polymath','你的收入不再只有一條線。這件事帶來的不只是錢，是選擇的自由。'); }
+    card(ok?'good':'bad','生活 · '+e.t,`${ok?e.gt:e.bt}<div class="sub">${lines.join('　')}</div>`);
+    board(); cb();
+  };
+  card('info','生活 · '+e.t,e.s);
+  choose('',[
+    {t:'認真面對',main:true,s:`成功率 ${p}%`,f:()=>apply(chance(p))},
+    {t:'先放著吧',s:'工作已經夠多了',f:()=>{ addBurn(3); card('','生活 · '+e.t,`你把它放進「之後再說」的清單，那份清單已經有點長了。<div class="sub">心力 <b class="dn">+3</b></div>`); board(); cb(); }}
+  ]);
+}
+
+/* ---------- 心力盤點 ---------- */
+function burnCheck(cb){
+  const acc=burnAccrue();
+  addBurn(acc);
+  const pct=Math.round(S.burn/burnCap()*100);
+  card(acc>0?(pct>=70?'bad':''):'good','心力盤點',
+    `本年節奏「${({sprint:'全力衝刺',balance:'穩定輸出',chill:'保留餘裕'})[S.mode]}」，心力 <b class="${acc>0?'dn':'up'}">${acc>0?'+':''}${acc}</b>　→　目前 <b class="${pct>=70?'dn':pct>=45?'hl':'up'}">${pct}%</b>${S.traits.steel?'（鋼鐵神經：上限 150）':''}`);
+  board();
+  if(S.burn<burnCap())return cb();
+  burnCrisis(cb);
+}
+function burnCrisis(cb){
+  const p=S.traits.steel?85:55;
+  const isFree=S.stage==='FREE', isFounder=S.stage==='FOUNDER';
+  const crisisText=isFree
+    ?'你發現自己開始害怕信箱通知。案子明明是自己接的，行事曆卻比上班時更不像自己的。'
+    :isFounder
+      ?'你已經連續幾個月醒來就在算跑道、營收和人。公司還在往前，但你本人快沒有電了。'
+      :'你已經連續幾個月在早晨睜眼時感覺不到任何動力。工作內容看得懂，卻很難真的推進。';
+  card('bad','職業倦怠警報',`${crisisText}<div class="sub">這不是多撐兩個晚上就能解決的問題，你需要調整工作方式。</div>`);
+
+  if(isFounder){
+    return choose('這一次，你打算怎麼處理？',[
+      {t:'把營運節奏降下來',main:true,s:'少追一點成長，先把自己拉回來',
+        f:()=>{ S.burn=18; addAb('grit',2); card('good','降載',`你砍掉兩個非必要專案，重新分工，也第一次把「創辦人不能倒」當成營運條件。<div class="sub">心力降至 18　·　${ABL.grit} <b class="up">+2</b></div>`); board(); cb(); }},
+      {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜失敗會強制休養`,f:()=>burnGamble(p,cb)},
+      {t:'把更多責任交出去',s:'短期失去一點控制，換回可持續的節奏',
+        f:()=>{ addBurn(-32); addAb('lead',2); card('good','開始授權',`你把幾個原本只有自己能決定的事情交給團隊。公司沒有因此失控。<div class="sub">心力 <b class="up">−32</b>　·　${ABL.lead} <b class="up">+2</b></div>`); board(); cb(); }}
+    ]);
+  }
+
+  if(isFree){
+    return choose('這一次，你打算怎麼處理？',[
+      {t:'停接新案一段時間',main:true,s:'當年收入約 ×0.6，但心力歸零',
+        f:()=>{ S.burn=0; S.yearPenalty=true; addAb('grit',3); card('good','主動留白',`你把新案全部排到三個月後，第一次沒有對任何客戶說「我可以趕」。<div class="sub">心力歸零　·　${ABL.grit} <b class="up">+3</b>　·　當年收入 ×0.6</div>`); board(); cb(); }},
+      {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜失敗會強制休養`,f:()=>burnGamble(p,cb)},
+      {t:'結束接案，先休息',s:'結完今年的案子後進入待業期',
+        f:()=>{ S.freeStop=true; S.burn=20; card('info','暫停接案',`你通知固定合作的客戶：手上的案子會做完，但暫時不接新的。這次你先替自己保留下一季。`); board(); cb(); }}
+    ]);
+  }
+
+  choose('這一次，你打算怎麼處理？',[
+    {t:'請長假／留職停薪',main:true,s:'當年收入 ×0.6、表現下滑，但心力歸零',
+      f:()=>{ S.burn=0; S.yearPenalty=true; addAb('grit',3);
+        card('good','按下暫停鍵',`你把假請完，關掉通知，做了三個月完全與工作無關的事。回來那天你發現，世界並沒有因為你休息而崩塌。<div class="sub">心力歸零　·　${ABL.grit} <b class="up">+3</b>　·　當年收入 ×0.6</div>`);
+        S.gambleOK=0; board(); cb(); }},
+    {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜失敗會強制休養`,f:()=>burnGamble(p,cb)},
+    {t:'直接離職，先休息',s:'結完今年後進入待業期，重新開機',
+      f:()=>{ S.quitNow=true; S.burn=20;
+        card('info','遞出辭呈',`你沒有找好下一份工作。信件送出的那一刻，你想的不是後悔，是終於可以好好睡一覺。`);
+        board(); cb(); }}
+  ]);
+}
+function burnGamble(p,cb){
+  if(chance(p)){ addBurn(-38); addAb('grit',2); S.gambleOK++;
+    card('good','撐過去了',`你把節奏調慢了一點，總算把這一段收完。<div class="sub">心力 <b class="up">−38</b>　·　${ABL.grit} <b class="up">+2</b></div>`);
+    if(S.gambleOK>=2&&!S.traits.steel)traitCard('steel','你發現自己的底盤跟別人不一樣——同樣的壓力，你恢復得比誰都快。');
+  }else{
+    S.gambleOK=0; S.burnouts++; S.rest=1; S.burn=32;
+    AB.forEach(k=>addAb(k,-4));
+    card('bad','重度過勞',`你被迫把工作按下暫停。接下來一年必須先恢復，再談成長。<div class="sub">明年強制休養　·　全能力 <b class="dn">−4</b></div>`);
+    if(S.burnouts>=2&&S.age<45&&!S.traits.burnout)
+      traitCard('burnout','身體記住了兩次崩潰。從此同樣的工作量，對你的消耗就是比別人大。');
+  }
+  board(); cb();
+}
+
+/* ---------- 年末結算 ---------- */
+function phaseEnd(){
+  board();
+  if(S.stage==='WORK')return workYear();
+  if(S.stage==='FOUNDER')return founderYear();
+  if(S.stage==='FREE')return freeYear();
+  if(S.stage==='STUDY')return studyYear();
+  return gapEnd();
+}
+function gradeOf(perf){ return perf>=8?'S':perf>=3?'A':perf>=-2.5?'B':perf>=-7.5?'C':'D'; }
+function gradeHTML(g){ return `<span class="grade g-${g}">${g}</span>`; }
+function perfCalc(){
+  let p=dVal()+N0(3.1);
+  p+=S.mode==='sprint'?2.2:S.mode==='chill'?-2.2:0;
+  p-=(S.burn/burnCap())*5.5;
+  p+=(S.pendBonus||0)*0.7; S.pendBonus=0;
+  if(S.yearPenalty){ p-=4.5; }
+  if(S.traits.teamHeart&&S.ladder==='MGR')p+=1;
+  if(S.tenure===0)p-=1.2;
+  return p;
+}
+function tierImpact(){ return [30,48,78,120,180,270,390][S.tier]; }
+function settleSalary(grade){
+  const raise={S:1.13,A:1.08,B:1.035,C:1.0,D:.985}[grade]*(0.97+S.macro.sal*0.03);
+  const target=baseSalary();
+  let ns=Math.round(S.salary*raise);
+  if(ns<target*0.84)ns=Math.round(target*0.9);
+  if(S.traits.veteran)ns=Math.max(ns,Math.round(target*1.2));
+  return ns;
+}
+function saveRate(){ return clamp(0.32-S.kids*0.05-(S.age<26?0.08:0),0.06,0.4); }
+function bankIncome(inc,label){
+  S.totalIncome=(S.totalIncome||0)+inc;
+  S.wealth+=Math.round(inc*saveRate());
+  S.peakSal=Math.max(S.peakSal||0,inc);
+}
+function workYear(){
+  const perf=perfCalc(), g=gradeOf(perf);
+  S.lastD=perf; S.lastGrade=g;
+  const projects=clamp(Math.round(1+S.ab.exec/22+perf/5+N0(1)),0,14);
+  const ot=Math.round((S.mode==='sprint'?520:S.mode==='balance'?300:150)*(0.7+S.ab.exec/160)*(S.co?COT[S.co.type].burn:1));
+  let impact=Math.round(tierImpact()*(1+perf/17)*(S.yearPenalty?0.6:1));
+  impact=Math.max(6,impact);
+  S.score+=impact;
+  const prevSal=S.salary;
+  S.salary=settleSalary(g);
+  let inc=S.salary*(S.yearPenalty?0.6:1)+S.sideIncome;
+  bankIncome(inc);
+  const eq=S.co?COT[S.co.type].eq:0;
+  if(eq>0)S.equity+=Math.round(S.salary*0.12*eq);
+  S.hist.push({y:S.year,age:S.age,co:S.co?S.co.name:'—',t:title(),g,sal:S.salary,impact});
+  tlNote(`${g} 級考績${S.co?'　'+S.co.name:''}`,1);
+  card(g==='S'||g==='A'?'good':g==='D'?'bad':'','年度績效考核',
+    `${
+      g==='S'?'年度校準會議上，你的名字被放在最前面。主管說：「這一年，這個位置換成別人做不出來。」':
+      g==='A'?'穩穩超出期待。該扛的扛了，該推的也推動了。':
+      g==='B'?'達標。沒有驚喜，也沒有意外——大部分的職涯，本來就是這樣長的。':
+      g==='C'?'低於期待。回饋裡出現了「希望看到更多主動性」這種句子。':
+      '這一年沒有做出成果。績效面談的氣氛，你走出會議室很久都還記得。'}
+     <div class="stat-row">
+      <div class="stat"><b>${gradeHTML(g)}</b><span>考績</span></div>
+      <div class="stat"><b>${projects}</b><span>主導專案</span></div>
+      <div class="stat"><b>${impact}</b><span>影響力分</span></div>
+      <div class="stat"><b>${ot.toLocaleString()}</b><span>加班時數</span></div>
+      <div class="stat"><b>${money(S.salary).replace(' 萬','萬')}</b><span>年薪</span></div>
+     </div>
+     <div class="sub">薪資 ${prevSal?`${money(prevSal)} → `:''}<b class="${S.salary>=prevSal?'up':'dn'}">${money(S.salary)}</b>${S.yearPenalty?'（長假期間收入 ×0.6）':''}　·　累積資產 <b class="hl">${money(S.wealth+S.equity)}</b>`);
+  S.yearPenalty=false;
+  if(g==='D')S.badYears++; else if(g==='C')S.badYears+=0.5; else S.badYears=0;
+  awardsCheck(g,perf,projects);
+  board();
+  const q=[];
+  if(S.quitNow){ q.push(cb=>{ leaveJob('quit'); S.stage='GAP'; S.quitNow=false; cb(); }); }
+  else{
+    q.push(cb=>promoReview(g,cb));
+    q.push(cb=>pipCheck(g,cb));
+    q.push(cb=>companyRisk(g,cb));
+    q.push(cb=>headhunt(g,cb));
+  }
+  next('▸ 進入年末人事',()=>runQ(q,()=>advance()));
+}
+function awardsCheck(g,perf,projects){
+  const got=[];
+  const give=k=>{ S.awards[k]=(S.awards[k]||0)+1; S.score+=AWARDS[k].p; got.push(AWARDS[k].n); };
+  const yrs=S.age-S.startAge;
+  if(g==='S'&&yrs<=2&&!S.awards.rookie&&chance(70))give('rookie');
+  if((g==='S'||g==='A')&&chance(g==='S'?55:28))give('star');
+  if(g==='S'&&chance(38+S.tier*3))give('mvp');
+  if(projects>=7&&(g==='S'||g==='A')&&chance(45))give('proj');
+  if(S.ab.net>=62&&(g==='S'||g==='A')&&chance(18+S.ab.net/6))give('talk');
+  if(S.ab.net>=72&&g==='S'&&S.tier>=3&&chance(16))give('ind');
+  if(S.ab.net>=68&&chance(10))give('media');
+  if(!got.length)return;
+  addAb('net',got.length);
+  card('gold','年度榮譽',`${got.map(x=>`<b class="hl">${x}</b>`).join('、')}<div class="sub">${ABL.net} <b class="up">+${got.length}</b>　·　這些會一直留在你的資歷上。</div>`);
+  if(S.traits.burnout&&!S.traits.phoenix&&(S.awards.mvp||S.awards.ind)){
+    S.traits.burnout=false;
+    traitCard('phoenix','所有人都以為你回不來了。你花了兩年重新學會怎麼工作，然後站上了自己從沒到過的位置。');
+    for(let i=0;i<8;i++)bumpRandom(1);
+  }
+  if(S.traits.imposter&&(S.awards.mvp||S.awards.star))removeTrait('imposter','拿到這座獎的那天，你終於敢承認：這不是運氣。');
+  tlNote(got[0],4); board();
+}
+
+/* ---------- 升遷 / 績效改善 ---------- */
+function promoReview(g,cb){
+  if(S.tier>=6||S.tenure<1)return cb();
+  const nx=TIERS[S.tier+1];
+  if(ovr()<nx.min-4){ S.noPromo++; return stuckCheck(cb); }
+  let p=8+(ovr()-nx.min)*2.6+({S:26,A:13,B:2,C:-12,D:-25})[g];
+  p+=(S.ladder==='MGR'?S.ab.lead:S.ab.craft)/7;
+  p*=(S.co?COT[S.co.type].grow:1)*S.macro.hire;
+  if(S.traits.teamHeart)p+=18;
+  if(S.traits.lone)p-=20;
+  if(S.traits.onetrick)p-=12;
+  if(S.traits.imposter)p-=10;
+  p=clamp(p,2,88);
+  if(!chance(p)){ S.noPromo++;
+    if(g==='S'||g==='A')card('','升遷評議',`你的名字進了名單，但這次的位置只有一個。<div class="sub">評議通過率 ${Math.round(p)}%　·　連續 ${S.noPromo} 年未晉升</div>`);
+    return stuckCheck(cb);
+  }
+  S.tier++; S.noPromo=0; S.promoAtCo=(S.promoAtCo||0)+1;
+  if(S.traits.stuck)removeTrait('stuck','升遷令發布那天，你想起七年前那個以為自己會一直卡在原地的自己。');
+  if(S.traits.imposter)removeTrait('imposter','你不再需要向誰證明什麼了。');
+  const doAfter=()=>{
+    S.salary=Math.max(S.salary,Math.round(baseSalary()*1.06));
+    card('gold','升遷',`<b class="hl">${title()}</b>——${
+      S.tier<=2?'你不再是那個什麼都要問的人了。':
+      S.tier<=4?'你開始要為別人的成長負責，也開始有人叫你「老師」。':
+      '你的名字出現在組織圖比較上面的那一格，會議也變得比較少人講真話。'}
+      <div class="sub">年薪調整至 <b class="hl">${money(S.salary)}</b>　·　職級 ${TIER().n}</div>`);
+    tlNote('升任 '+title(),5); board(); cb();
+  };
+  if(S.tier===3&&S.ladder==='—'){
+    card('info','雙軌分岔',`人資找你談下一步：公司的職涯有兩條路，一條往管理，一條往專業。<div class="sub">選擇會影響往後的職稱、升遷評議看重的能力，以及你每天實際在做的事。</div>`);
+    return choose('你要往哪一條走？',[
+      {t:'管理職',main:true,s:'升遷看重領導力｜你的產出將是別人的產出',
+        f:()=>{ S.ladder='MGR'; doAfter(); }},
+      {t:'專業職 IC',s:'升遷看重專業力｜你要繼續當那個做得最好的人',
+        f:()=>{ S.ladder='IC'; doAfter(); }}
+    ]);
+  }
+  if(S.ladder==='—')S.ladder='MGR';
+  doAfter();
+}
+function stuckCheck(cb){
+  if(S.noPromo>=7&&S.tier<=1&&!S.traits.stuck)
+    traitCard('stuck','七年了。你還在做同一件事、坐同一個位置，開會時新人叫你「前輩」，語氣裡有一點同情。');
+  cb();
+}
+function pipCheck(g,cb){
+  if(S.badYears<2)return cb();
+  S.badYears=0;
+  card('bad','績效改善計畫',`人資與主管把你約進小會議室，桌上是一份 PIP 文件，寫著三個月的觀察期。<div class="sub">「我們希望你留下來，但現在這個位置的期待，你確實沒有達到。」</div>`);
+  const opts=[
+    {t:'接受降職，重新站穩',main:true,s:'職級 −1，但保住工作與收入',
+      f:()=>{ if(S.tier>0)S.tier--; S.salary=Math.round(baseSalary());
+        card('','退一步',`你把頭銜交回去，換一個做得動的位置。第一週很難受，第三週就開始有東西做出來了。<div class="sub">現職：${title()}　·　年薪 ${money(S.salary)}</div>`);
+        if(!S.traits.imposter)traitCard('imposter','你開始覺得，之前那些成績也許只是運氣。這種念頭一旦長出來，很難拔掉。');
+        tlNote('降職',3); board(); cb(); }},
+    {t:'拒絕降職，賭下一年',warn:true,s:'留在原位｜若明年仍未達標將永久留下污點',
+      f:()=>{ S.refused=true; card('','我還可以',`你在會議室裡說了「再給我一年」。走出來的時候，你知道所有人都在看。`); cb(); }},
+    {t:'主動離職',s:'進入待業期，重新找一個適合的位置',
+      f:()=>{ leaveJob('quit'); S.stage='GAP'; card('info','離開',`你選擇了自己走。收拾東西那天，沒有歡送會，但你心裡意外地平靜。`); cb(); }}
+  ];
+  choose('你的選擇？',opts);
+}
+
+/* ---------- 公司風險 ---------- */
+function companyRisk(g,cb){
+  if(!S.co)return cb();
+  const t=COT[S.co.type];
+  const layP=t.risk*100*S.macro.lay*((g==='C'||g==='D')?1.9:0.6);
+  if(chance(layP)){
+    const sev=Math.round(S.salary*0.32);
+    S.wealth+=sev;
+    card('bad','組織精簡',`一封標題只有「重要通知」的會議邀請。十五分鐘後，你的門禁卡就刷不進去了。<div class="sub">資遣費 <b class="hl">${money(sev)}</b>　·　「這跟你的表現無關」——他們每個人都這樣說。</div>`);
+    leaveJob('layoff'); S.stage='GAP'; tlNote('被資遣',4); board(); return cb();
+  }
+  if(chance(6)){
+    const buyer=pick(['一間美商','一家日本商社','同業最大的競爭對手','一檔私募基金']);
+    card('info','公司被併購',`${buyer}買下了 ${S.co.name}。整合會議上，新的組織圖投影在牆上，有些格子還是空的。`);
+    const bonus=Math.round(S.salary*0.4);
+    return choose('你要留下來嗎？',[
+      {t:'留任，領留才獎金',main:true,s:`+${money(bonus)}，但文化將完全改變`,
+        f:()=>{ S.wealth+=bonus; S.co.type=pick(['UNI','FOR','CORP']); S.co.acquired=true;
+          addBurn(8); card('','留下來的人',`半年後，會議語言換了、流程換了、當初一起做事的人走了一半。你還在。<div class="sub">留才獎金 +${money(bonus)}　·　心力 <b class="dn">+8</b></div>`); board(); cb(); }},
+      {t:'拿資遣，趁機換跑道',s:'進入待業期，但市場上這個時機不差',
+        f:()=>{ S.wealth+=Math.round(S.salary*0.3); leaveJob('mna'); S.stage='GAP';
+          card('','走人',`你在整合會議結束後就寄出了信。有些船，是要在沉之前下的。`); board(); cb(); }}
+    ]);
+  }
+  if(S.co.type==='SEED'&&chance(t.risk*100*S.macro.lay*0.55)){
+    card('bad','公司收掉了',`最後一輪募資沒有談成。創辦人在全員會上講到一半就講不下去，最後只說了謝謝。`);
+    leaveJob('closed'); S.stage='GAP'; tlNote('公司倒閉',4); board(); return cb();
+  }
+  if(chance(9)){
+    const kinds=[
+      ['換了新主管','新老闆第一天就找每個人聊三十分鐘。他問的問題跟前一任完全不同。',[['comm',1]]],
+      ['部門重組','你的團隊被拆成兩半，一半跟你走，一半去了另一個組。',[['lead',1]]],
+      ['預算凍結','年度計畫砍掉三分之一，你得決定哪些事今年不做了。',[['exec',1]]]
+    ];
+    const [t2,txt,eff]=pick(kinds);
+    const lines=[]; eff.forEach(([k,v])=>{ addAb(k,v); lines.push(`${ABL[k]} <b class="up">+${v}</b>`); });
+    card('',t2,`${txt}<div class="sub">${lines.join('　')}</div>`); board();
+  }
+  cb();
+}
+function leaveJob(kind){
+  if(S.co){
+    S.jobs.push({name:S.co.name,type:S.co.type,yrs:S.tenure,end:S.year,kind});
+    if(S.tenure<2&&kind==='quit'){ S.shortHops++;
+      if(S.shortHops>=3&&!S.traits.drifter)traitCard('drifter','你的履歷上有一整排待不到兩年的公司。面試官每次都會問同一個問題，你每次都要重新解釋一遍。');
+    }
+  }
+  S.co=null; S.tenure=0; S.promoAtCo=0; S.salary=0; S.sideIncome=Math.round(S.sideIncome*0.6);
+}
+
+/* ---------- 獵頭 ---------- */
+function makeOffer(tierWanted,mult){
+  const wts=TRACK_CO[S.track];
+  const bag=[]; COT_KEYS.forEach(k=>{ for(let i=0;i<Math.round(wts[k]*10);i++)bag.push(k); });
+  const type=pick(bag);
+  const used=S.jobs.map(j=>j.name).concat(S.co?[S.co.name]:[]);
+  const pool=COT[type].names.filter(n=>!used.includes(n));
+  const name=pool.length?pick(pool):pick(COT[type].names)+'（二度）';
+  const tier=clamp(tierWanted,0,6);
+  const saved={t:S.tier,c:S.co};
+  S.tier=tier; S.co={type,name};
+  const sal=Math.round(baseSalary()*mult);
+  S.tier=saved.t; S.co=saved.c;
+  return {type,name,tier,sal,mult};
+}
+function headhunt(g,cb){
+  if(!S.co)return cb();
+  let p=7+S.ab.net/5+({S:16,A:7,B:0,C:-3,D:-6})[g];
+  p*=S.macro.hire; if(S.traits.kol)p*=2; if(S.traits.drifter)p*=0.65; if(S.traits.lone)p*=0.75;
+  if(S.tenure<1)p*=0.5;
+  if(!chance(clamp(p,1,72)))return cb();
+  const nx=TIERS[Math.min(6,S.tier+1)];
+  const canUp=ovr()>=nx.min&&S.tier<6;
+  const n=ri(2,3), offers=[];
+  for(let i=0;i<n;i++){
+    const up=canUp&&chance(45);
+    let m=(1.08+R()*0.30)*(S.traits.kol?1.15:1)*(S.traits.drifter?0.85:1)*(S.macro.sal);
+    offers.push(makeOffer(up?S.tier+1:S.tier,m));
+  }
+  card('info','獵頭來信',`一封 LinkedIn 訊息躺在收件匣：「不知道您目前是否方便聊聊？」<div class="sub">你其實沒有在找工作。但看一眼，不算背叛。</div>`);
+  const opts=offers.map(o=>({
+    t:`跳槽 · ${o.name}`,
+    gold:o.sal>S.salary*1.25,
+    s:`${COT[o.type].n}　·　${TIERS[o.tier].n}${o.tier>S.tier?'（升一級）':''}　·　年薪 ${money(o.sal)}（${o.sal>=S.salary?'+':''}${Math.round((o.sal/S.salary-1)*100)}%）`,
+    f:()=>{
+      leaveJob('quit'); S.hops++;
+      S.co={type:o.type,name:o.name}; S.tier=o.tier; S.tenure=0; S.salary=o.sal; S.badYears=0;
+      card('good','換了一個地方',`到職第一天，你重新學了一次印表機怎麼用、午餐要去哪買、以及這裡的人怎麼開會。<div class="sub">${o.name}　·　${title()}　·　年薪 ${money(o.sal)}</div>`);
+      tlNote('跳槽 '+o.name,4); board(); cb();
+    }}));
+  opts.push({t:'留任，並跟主管談談',main:true,s:'60% 機率換到留才加薪',
+    f:()=>{ if(chance(60)){ const ns=Math.round(S.salary*1.12); card('good','留才加薪',`你把外面的數字放在桌上，沒有威脅的意思，只是誠實。三天後 HR 寄來新的聘書。<div class="sub">年薪 ${money(S.salary)} → <b class="hl">${money(ns)}</b></div>`); S.salary=ns; }
+      else card('','沒有下文',`主管說「我幫你爭取看看」，然後這件事就沒有下文了。你把那封信留在收件匣裡。`);
+      board(); cb(); }});
+  opts.push({t:'不讀不回',s:'現在這裡還有沒做完的事',f:()=>{ card('','留下','你把訊息滑掉了。有些階段，穩定本身就是一種策略。'); cb(); }});
+  choose('桌上有幾個選項',opts);
+}
+
+/* ---------- 待業 / 求職 ---------- */
+function jobSearch(cb){
+  const yrs=S.gapYears;
+  let n=0;
+  const base=18+(ovr()-30)*2.2+S.ab.net/4;
+  const p=clamp(base*S.macro.hire*(S.traits.drifter?0.75:1)*(yrs>=2?0.7:1),8,95);
+  for(let i=0;i<3;i++)if(chance(p))n++;
+  if(n===0){
+    S.gapYears++;
+    const drop=S.gapYears>=2&&S.tier>0;
+    if(drop)S.tier--;
+    card('bad','沒有結果的一年',`投了六十幾封，回覆的有九封，進到最後一關的有兩間。然後就沒有了。<div class="sub">${drop?`市場評價下修：職級調整為 ${TIER().n}　·　`:''}資產 ${money(S.wealth)}　·　「你開始懷疑問題是不是出在自己身上。」</div>`);
+    addBurn(-6); S.wealth=Math.max(0,S.wealth-Math.round(60*(1+S.kids*0.4)));
+    addAb('grit',1);
+    board(); return cb();
+  }
+  const downTier=Math.max(0,S.tier-(S.gapYears>=2?1:0));
+  const offers=[];
+  for(let i=0;i<n;i++)offers.push(makeOffer(chance(22)&&S.tier<6?S.tier+1:downTier,0.86+R()*0.34));
+  card('good','有回音了',`${n} 間公司走到了最後一關。<div class="sub">待業 ${S.gapYears?S.gapYears+' 年　·　':''}目前綜合評價 ${ovr()}</div>`);
+  const opts=offers.map(o=>({t:`入職 · ${o.name}`,main:o===offers[0],
+    s:`${COT[o.type].n}　·　${TIERS[o.tier].n}　·　年薪 ${money(o.sal)}`,
+    f:()=>{ S.co={type:o.type,name:o.name}; S.tier=o.tier; S.tenure=0; S.salary=o.sal;
+      S.stage='WORK'; S.gapYears=0; S.badYears=0;
+      card('good','重新開始',`到職通知寄來的那天下午，你把履歷檔案關掉，去樓下買了一杯很貴的咖啡。<div class="sub">${o.name}　·　${title()}　·　年薪 ${money(o.sal)}</div>`);
+      tlNote('入職 '+o.name,4); board(); cb(); }}));
+  if(S.ab.craft>=50&&S.ab.net>=42)opts.push({t:'不找了，開始接案',s:'收入隨能力浮動，但不必再面試',
+    f:()=>{ S.stage='FREE'; S.gapYears=0; card('info','自由工作者',`你把 offer 都婉拒了，開了一個新的收款帳號。`); tlNote('轉為自由接案',3); board(); cb(); }});
+  choose('選一個地方，重新開始',opts);
+}
+function gapEnd(){
+  const cost=Math.round(72*(1+S.kids*0.4));
+  S.wealth=Math.max(0,S.wealth-cost);
+  S.lastGrade='—'; S.salary=0;
+  S.hist.push({y:S.year,age:S.age,co:'待業',t:'—',g:'—',sal:0,impact:0});
+  card('','這一年的帳',`沒有收入的一年，生活費支出 <b class="dn">${money(cost)}</b>，剩下 <b class="hl">${money(S.wealth)}</b>。<div class="sub">你開始認真研究，自己的存款能撐幾個月。</div>`);
+  board(); next('▸ 進入下一年',()=>advance());
+}
+
+/* ---------- 自由工作 / 進修 ---------- */
+function freeYear(){
+  const gross=Math.round((S.ab.craft*1.15+S.ab.net*0.95+S.ab.comm*0.35)*(0.85+S.macro.sal*0.18)*(S.mode==='sprint'?1.2:S.mode==='chill'?0.75:1));
+  const inc=Math.round(gross*(S.yearPenalty?0.6:1));
+  S.salary=inc;
+  const perf=(ovr()-52)+N0(3); S.lastGrade=gradeOf(perf); S.lastD=perf;
+  const impact=Math.max(8,Math.round(60*(1+perf/18)));
+  S.score+=impact;
+  bankIncome(inc+S.sideIncome);
+  S.hist.push({y:S.year,age:S.age,co:'自由接案',t:'自由工作者',g:S.lastGrade,sal:inc,impact});
+  card('','接案年結',`今年接了 ${ri(4,14)} 個案子，其中 ${ri(1,4)} 個是老客戶介紹的。
+    <div class="stat-row">
+      <div class="stat"><b>${money(inc).replace(' 萬','萬')}</b><span>年收入</span></div>
+      <div class="stat"><b>${gradeHTML(S.lastGrade)}</b><span>市場評價</span></div>
+      <div class="stat"><b>${impact}</b><span>影響力分</span></div>
+      <div class="stat"><b>${money(S.wealth)}</b><span>資產</span></div>
+    </div>
+    <div class="sub">${S.yearPenalty?'今年刻意減量，收入約為平常的 60%。':'收入自由度更高，但風險與緩衝也都要自己準備。'}</div>`);
+  S.yearPenalty=false;
+  board();
+  const q=[];
+  if(S.freeStop){
+    q.push(cb=>{ S.freeStop=false; S.stage='GAP'; S.salary=0; card('info','接案暫停',`手上的案子都結清後，你把「可接案」從個人頁面拿掉。下一年先不替自己的時間定價。`); tlNote('暫停自由接案',3); board(); cb(); });
+  } else if(chance(30+S.ab.net/6)){
+    q.push(cb=>{
+      const o=makeOffer(clamp(S.tier,0,6),1.0+R()*0.2);
+      card('info','有人想把你請回去',`一間公司希望你回到組織裡：${o.name}，${TIERS[o.tier].n}，年薪 ${money(o.sal)}。`);
+      choose('回去嗎？',[
+        {t:'回到組織',main:true,s:'穩定收入與團隊，換掉一部分自由',
+          f:()=>{ S.stage='WORK'; S.co={type:o.type,name:o.name}; S.tier=o.tier; S.salary=o.sal; S.tenure=0;
+            card('good','回鍋',`你重新有了同事、也重新有了週會。<div class="sub">${o.name}　·　${title()}</div>`); tlNote('回到組織',3); board(); cb(); }},
+        {t:'繼續自己接',s:'你已經習慣早上十點才開機',f:()=>cb()}
+      ]);
+    });
+  }
+  next('▸ 進入下一年',()=>runQ(q,()=>advance()));
+}
+function studyYear(){
+  const cost=ri(60,160);
+  S.wealth=Math.max(0,S.wealth-cost);
+  S.lastGrade='—'; S.salary=0;
+  addAb('learn',3); addAb('craft',2);
+  if(!S.traits.academy)traitCard('academy','你重新變回學生，而且這次你知道自己為什麼要學。');
+  S.hist.push({y:S.year,age:S.age,co:'進修',t:'進修中',g:'—',sal:0,impact:0});
+  card('good','進修年結',`一整年的課、報告與實作。學費與生活費共支出 <b class="dn">${money(cost)}</b>。<div class="sub">${ABL.learn} <b class="up">+3</b>　·　${ABL.craft} <b class="up">+2</b></div>`);
+  board();
+  next('▸ 回到職場',()=>{
+    S.stage='WORK';
+    const b=S.studyBack;
+    if(b&&b.co&&chance(65)){ S.co=b.co; S.tier=b.tier; S.tenure=0; S.salary=baseSalary();
+      card('good','回到原本的公司',`留職停薪的位置還在。你回去的第一週，發現自己看事情的角度不一樣了。<div class="sub">${S.co.name}　·　${title()}　·　年薪 ${money(S.salary)}</div>`); board(); advance(); }
+    else{ S.stage='GAP'; card('','重新找位置',`原本的位置已經有人了。你帶著新的東西，重新走進市場。`); board(); advance(); }
+  });
+}
+
+/* ---------- 創業 ---------- */
+const STARTUP_NAMES=['光年實驗室','小宇宙科技','走走科技','明日引擎','半島數據','река工作室','北緯科技','慢慢來股份有限公司'];
+function startFounder(cb){
+  S.stage='FOUNDER'; leaveJob('quit');
+  S.founder={name:pick(STARTUP_NAMES).replace('река','貝加爾'),phase:0,runway:ri(14,24),raised:0,exited:false};
+  S.salary=ri(55,100);
+  card('gold','創業',`你們四個人在一間共同工作空間租了一張長桌。公司叫 <b class="hl">${S.founder.name}</b>。<div class="sub">薪水砍到 ${money(S.salary)}，換來的是股份，和一件事：從此沒有人會告訴你該做什麼。</div>`);
+  tlNote('創業 '+S.founder.name,5); board(); cb();
+}
+function founderYear(){
+  const f=S.founder;
+  const power=ovr()+S.ab.lead*0.25+S.ab.net*0.35;
+  let p=clamp(18+(power-70)*1.5+S.macro.hire*10+(S.mode==='sprint'?8:S.mode==='chill'?-8:0),6,80);
+  const impact=Math.max(18,Math.round((42+f.phase*42)*(1+(power-70)/45)));
+  S.score+=impact;
+  bankIncome(S.salary);
+  S.hist.push({y:S.year,age:S.age,co:f.name,t:'共同創辦人',g:'—',sal:S.salary,impact});
+  addBurn(6);
+  const roll=R()*100;
+  if(roll<p){
+    f.phase++; f.runway=ri(16,30); f.raised+=ri(2000,9000)*(f.phase);
+    S.salary=Math.round(S.salary*1.35);
+    addAb('lead',2); addAb('net',2);
+    card('gold','募資成功',`${['種子輪','A 輪','B 輪','C 輪','後期輪'][Math.min(4,f.phase)]}關掉了。投資人在會議室裡說了很多你聽過的形容詞。<div class="sub">累積募資 ${money(f.raised)}　·　${ABL.lead} <b class="up">+2</b>　·　${ABL.net} <b class="up">+2</b>　·　年薪調整至 ${money(S.salary)}</div>`);
+    tlNote(['種子輪','A 輪','B 輪','C 輪','後期輪'][Math.min(4,f.phase)]+'募資',5);
+  }else if(roll<p+45){
+    f.runway-=8;
+    card('','撐著',`營收有成長，但沒有到投資人想看的曲線。跑道剩下大約 <b class="hl">${Math.max(0,f.runway)}</b> 個月。<div class="sub">影響力分 +${impact}　·　你已經很久沒有睡好覺了。</div>`);
+  }else{
+    f.runway-=14;
+    addAb('grit',2);
+    card('bad','燒得比想像快',`關鍵客戶沒有續約，最大的通路改了規則。你們開始討論要不要縮編。<div class="sub">跑道剩約 ${Math.max(0,f.runway)} 個月　·　${ABL.grit} <b class="up">+2</b></div>`);
+  }
+  board();
+  const q=[];
+  if(f.phase>=2&&chance(22+f.phase*4)){
+    q.push(cb=>{
+      const price=ri(4000,26000)+f.raised;
+      const mine=Math.round(price*(0.05+R()*0.10));
+      card('gold','有人要買下你們',`一間你們曾經視為對手的公司，開了一個數字。你的股份換算下來是 <b class="hl">${money(mine)}</b>。`);
+      choose('簽字嗎？',[
+        {t:'成交，把公司交出去',main:true,gold:true,s:`入袋 ${money(mine)}`,
+          f:()=>{ S.wealth+=mine; S.awards.exit=(S.awards.exit||0)+1; S.score+=Math.round(AWARDS.exit.p*(S.awards.exit>1?0.4:1));
+            f.exited=true; traitCard('founder','你把一間公司從一張長桌，做到有人願意付錢買下。這件事沒有人可以從你身上拿走。');
+            card('gold','出場',`交割那天你在律師事務所待了六個小時。走出來的時候，你第一次真正感覺到「結束」這兩個字。<div class="sub">資產 ${money(S.wealth)}</div>`);
+            tlNote('公司成功出場',6);
+            afterExit(cb); }},
+        {t:'不賣，我們自己走下去',warn:true,s:'放棄現金，賭一個更大的可能',
+          f:()=>{ f.runway+=10; addAb('grit',3); S.score+=180;
+            card('','不賣',`你在會議上說：如果現在賣掉，那當初為什麼要開始。<div class="sub">${ABL.grit} <b class="up">+3</b></div>`); cb(); }}
+      ]);
+    });
+  }
+  if(f.runway<=0){
+    q.push(cb=>{
+      card('bad','公司收掉了',`最後一次全員會只有七個人。你把設備賣掉、把款項結清，最後一個離開辦公室，關燈。<div class="sub">「我不後悔。但我很累。」</div>`);
+      addAb('grit',3); addAb('lead',2); S.score+=260;
+      S.stage='GAP'; S.founder=null; S.salary=0; tlNote('創業結束',4);
+      board(); cb();
+    });
+  }
+  next('▸ 進入下一年',()=>runQ(q,()=>advance()));
+}
+function afterExit(cb){
+  S.founder.exited=true;
+  choose('接下來呢？',[
+    {t:'休息一年再說',main:true,s:'進入待業期，但這次是自願的',
+      f:()=>{ S.stage='GAP'; S.founder=null; S.salary=0; cb(); }},
+    {t:'再創一次業',gold:true,s:'這次你知道哪些坑不用再踩',
+      f:()=>{ S.founder={name:pick(STARTUP_NAMES).replace('река','貝加爾'),phase:1,runway:ri(20,34),raised:0,exited:false};
+        S.salary=ri(90,160); card('gold','再來一次',`第二次開始，比第一次冷靜，也比第一次孤獨。`); cb(); }},
+    {t:'回到大公司當高階主管',s:'把經驗換成一個位置',
+      f:()=>{ S.stage='WORK'; S.founder=null; S.tier=clamp(Math.max(S.tier,4),0,6); S.ladder='MGR';
+        const o=makeOffer(S.tier,1.15); S.co={type:o.type,name:o.name}; S.tenure=0; S.salary=o.sal;
+        card('good','回到組織',`${o.name} 給了你一個位置與一支團隊。<div class="sub">${title()}　·　年薪 ${money(S.salary)}</div>`); cb(); }}
+  ]);
+}
+
+/* ---------- 年度推進 ---------- */
+function advance(){
+  if(S.done)return;
+  /* 特質檢查 */
+  if(S.co&&S.tenure>=10&&(S.promoAtCo||0)>=1&&!S.traits.veteran)
+    traitCard('veteran','十年了。新人入職訓練的簡報裡有你的照片，你自己都忘了那是什麼時候拍的。');
+  const g=toolGap();
+  if(g.gap>=24&&g.top>=62&&!S.traits.onetrick)
+    traitCard('onetrick',`你在「${ABL[g.k]}」上遠遠超過其他面向，市場開始只用一種方式看你。`);
+  else if(S.traits.onetrick&&g.gap<18)removeTrait('onetrick','你補上了缺的那一塊。現在別人終於看得到你的全貌。');
+  if(S.refused){
+    S.refused=false;
+    if(S.lastGrade==='C'||S.lastGrade==='D'){
+      if(!S.traits.freeloader)traitCard('freeloader','你賭的那一年沒有打回來。這件事在公司裡沒有人明講，但每個人都記得。');
+    }else card('good','賭贏了','你用一年的成績把質疑堵了回去。走廊上的視線，變回了普通的視線。');
+  }
+  S.peakTier=Math.max(S.peakTier,S.tier);
+  S.year++; S.age++;
+  if(S.stage==='WORK')S.tenure++;
+  if(S.stage==='GAP')S.gapYears=S.gapYears;
+  startYear();
+}
+function toolGap(){
+  const core=['craft','exec','comm','lead','net'];
+  const vals=core.map(k=>({k,v:S.ab[k]})).sort((a,b)=>b.v-a.v);
+  return {k:vals[0].k,top:vals[0].v,gap:vals[0].v-vals[2].v};
+}
+</script>
+<script>
+/* =========================================================
+   結算
+   ========================================================= */
+const RANKS=[
+  {k:'LEGEND',n:'產業傳奇',en:'LEGEND',min:11000,d:'你不只把自己的職涯走完，你順手改變了很多人的路徑。'},
+  {k:'ICON',n:'產業標竿',en:'ICON',min:9000,d:'這個領域在談最佳實踐時，會引用你做過的事。'},
+  {k:'EXCEL',n:'卓越工作者',en:'EXCELLENT',min:6300,d:'你長期穩定地做出高於期待的成果，並且帶起了一群人。'},
+  {k:'SOLID',n:'可靠的中堅',en:'SOLID',min:4200,d:'每個組織都需要你這樣的人。少了你，很多事會安靜地垮掉。'},
+  {k:'CRAFT',n:'一步一腳印',en:'STEADY',min:2300,d:'沒有捷徑，也沒有奇蹟。你就是每天把事情做完的那個人。'},
+  {k:'REAL',n:'平凡而真實',en:'ORDINARY',min:0,d:'你的職涯像大多數人的職涯：有卡住的時候，也有撐過去的時候。'}
+];
+const SECOND_LIFE=[
+  '你去了一間離島的民宿當管家，早上換床單，下午看海，晚上幫房客規劃隔天的路線。',
+  '你開了一間只賣三種品項的早餐店，牆上貼著你以前的員工識別證，客人問起你就笑一下。',
+  '你去考了教師資格，現在在高職教數位課程。學生問「老師你以前在哪上班」的時候，你講得很輕描淡寫。',
+  '你成了獨立接案者，一年只接四個案子，其他時間在山上。',
+  '你回家幫忙家裡的生意，把老店的訂單系統整個數位化，營業額三年翻了一倍。',
+  '你加入了一個社會創新組織，薪水少了一半，但每天起床都知道自己為什麼要出門。',
+  '你去唸了完全不相干的第二個學位。同學平均比你小十歲，你是最認真的那一個。',
+  '你花了兩年環島加打工換宿，回來以後開了一個頻道，講的是「離開之後」。'
+];
+function finalScore(){
+  let sc=Math.round(S.score);
+  sc+=Math.round((S.totalIncome||0)/26);
+  sc+=S.peakTier*260;
+  if(S.traits.veteran)sc+=260;
+  if(S.traits.founder)sc+=420;
+  if(S.traits.prodigy)sc+=120;
+  if(S.traits.phoenix)sc+=180;
+  if(S.traits.polymath)sc+=90;
+  if(S.traits.freeloader)sc-=260;
+  if(S.traits.lone)sc-=180;
+  if(S.traits.drifter)sc-=140;
+  return Math.max(0,sc);
+}
+function endGame(reason){
+  if(S.done)return;
+  S.done=true; stepQ=[]; actClear();
+  const sc=finalScore();
+  const rk=RANKS.find(r=>sc>=r.min);
+  if(rk.k==='LEGEND'&&sc>=RANKS[0].min*1.2)traitCard('legend','你的名字成了一個形容詞。');
+  const yrs=S.age-S.startAge;
+  const total=Math.round(S.totalIncome||0);
+  const assets=Math.round(S.wealth+S.equity);
+  const awardList=Object.keys(S.awards).filter(k=>S.awards[k]).map(k=>`${AWARDS[k].n}${S.awards[k]>1?' ×'+S.awards[k]:''}`);
+  const traitList=Object.keys(S.traits).filter(k=>S.traits[k]);
+  const early=S.age<38;
+  const peakTitle=(S.traits.founder&&S.peakTier<3)?'共同創辦人':(S.ladder==='IC'?TK().ic:TK().mgr)[S.peakTier];
+  divider(`職涯結算 · ${S.startAge}–${S.age} 歲`);
+  const box=document.createElement('div');
+  box.className='final glass';
+  box.innerHTML=`
+    <div class="rank-sub">CAREER VERDICT　·　${rk.en}</div>
+    <div class="rank">${rk.n}</div>
+    <div class="kv">
+      <div><b>${sc.toLocaleString()}</b><span>職涯評價分</span></div>
+      <div><b>${yrs}</b><span>工作年數</span></div>
+      <div><b>${S.traits.founder&&S.peakTier<3?'創辦人':TIERS[S.peakTier].n}</b><span>最高職級</span></div>
+      <div><b>${money(S.peakSal||0)}</b><span>最高年薪</span></div>
+      <div><b>${money(total)}</b><span>生涯總收入</span></div>
+      <div><b>${money(assets)}</b><span>最終資產</span></div>
+    </div>
+    <div class="verdict">
+      <b>${S.name}</b>，${TK().n}，${peakTitle}。<br>
+      ${reason}<br><br>
+      ${rk.d}<br><br>
+      ${S.jobs.length||S.co?`你一共待過 <b class="hl">${S.jobs.length+(S.co?1:0)}</b> 間公司${S.jobs.length?`（${S.jobs.slice(0,6).map(j=>j.name).join('、')}${S.jobs.length>6?'⋯':''}${S.co?'、'+S.co.name:''}）`:''}，`:''}
+      ${S.married?`與 ${S.spouse} 一起生活${S.kids?`，養大了 ${S.kids} 個孩子`:''}。`:'一個人把日子過得還算不錯。'}
+      ${awardList.length?`<br><br>生涯榮譽：<b class="hl">${awardList.join('、')}</b>。`:''}
+      ${traitList.length?`<br>職涯標籤：${traitList.map(k=>`<span class="tag ${TR[k].tone}">${TR[k].n}</span>`).join(' ')}`:''}
+      ${early?`<br><br><b>離開之後</b><br>${pick(SECOND_LIFE)}`:''}
+      <br><br><span style="color:var(--dim)">離開職場的人生，也是人生。${S.name}，辛苦了。</span>
+    </div>`;
+  logTarget().appendChild(box);
+  setTimeout(()=>{ const y=box.getBoundingClientRect().top+window.scrollY-200; window.scrollTo({top:y,behavior:'smooth'}); },240);
+  const hist=S.hist.filter(h=>h.g!=='—').slice(-30);
+  if(hist.length){
+    const t=document.createElement('div');
+    t.className='card glass'; t.style.marginTop='12px';
+    t.innerHTML=`<h3><span class="dot"></span>逐年紀錄</h3>
+      <div style="max-height:280px;overflow:auto;margin-top:8px">
+      ${S.hist.map(h=>`<div class="mrow"><span>${h.y}　${h.age}歲　${h.co}</span><span style="color:var(--ink)">${h.t}　${h.g!=='—'?gradeHTML(h.g):'—'}　${h.sal?money(h.sal):'—'}</span></div>`).join('')}
+      </div>`;
+    logTarget().appendChild(t);
+  }
+  choose('',[
+    {t:'▸ 再活一次（換一組種子）',main:true,f:()=>location.reload()},
+    {t:'▸ 用同一組種子重來',s:'同樣的天賦，不同的選擇',f:()=>{ const q=new URLSearchParams({seed:S.seed,t:S.track,b:S.bg,n:S.name}); location.href=location.pathname+'?'+q.toString(); }}
+  ]);
+  board(); scrollBottom();
+}
+
+/* =========================================================
+   選單 / 面板
+   ========================================================= */
+function abModal(){
+  const w=TK().w;
+  const rows=AB.map(k=>`<div class="ab${S.ab[k]>=S.pot[k]?' cap':''}"><div class="t"><span>${ABL[k]}　<i style="font-style:normal;opacity:.55;font-size:10.5px">${ABD[k]}</i></span><b>${S.ab[k]}<i style="font-style:normal;color:var(--dim);font-weight:400;font-size:10.5px"> /${S.pot[k]}</i></b></div><div class="track"><i style="width:${S.ab[k]}%"></i><u style="left:calc(${S.pot[k]}% - 1px)"></u></div></div>`).join('');
+  const tr=Object.keys(S.traits).filter(k=>S.traits[k]);
+  modal(`<h3>能力與特質</h3>
+    <div class="mrow"><span>綜合評價</span><b class="mono">${ovr()}</b></div>
+    <div class="mrow"><span>職涯軌道</span><span style="color:var(--ink)">${TK().n}　${title()}</span></div>
+    <div class="mrow"><span>資產／股權</span><span style="color:var(--ink)">${money(S.wealth)}　·　${money(S.equity)}</span></div>
+    <div style="margin:14px 0 4px">${rows}</div>
+    ${tr.length?`<h3 style="margin-top:16px">隱藏特質</h3>${tr.map(k=>`<div class="trait-row"><span class="tag ${TR[k].tone}">${TR[k].n}</span><span class="d">${TR[k].fx}</span></div>`).join('')}`:''}
+    <button class="mbtn" onclick="modalClose()">關閉</button>`);
+}
+function menuModal(){
+  modal(`<h3>選單</h3>
+    <div class="mrow"><span>種子碼</span><b class="mono">${S.seed}</b></div>
+    <div class="mrow"><span>景氣</span><span style="color:var(--ink)">${S.macro.n}</span></div>
+    <div class="mrow"><span>年資</span><span style="color:var(--ink)">${S.age-S.startAge} 年　·　現職 ${S.tenure} 年</span></div>
+    <div class="mrow"><span>跳槽次數</span><span style="color:var(--ink)">${S.hops}</span></div>
+    <button class="mbtn" onclick="abModal()">查看能力與特質</button>
+    <button class="mbtn" onclick="helpModal()">玩法說明</button>
+    <button class="mbtn" onclick="navigator.clipboard&&navigator.clipboard.writeText('${S.seed}');this.textContent='已複製種子碼'">複製種子碼</button>
+    <button class="mbtn" onclick="if(confirm('確定要重新開始這一生嗎？'))location.href=location.pathname">重新開始</button>
+    <button class="mbtn" onclick="modalClose()">關閉</button>`);
+}
+function helpModal(){
+  modal(`<h3>玩法說明</h3>
+    <p style="font-size:13px;color:#dbe3f5;line-height:1.85">
+    <b>每一年三個階段</b><br>
+    ① <b>年初</b>：擲 3–6 顆骰，自己決定投資在哪一項能力。能力有隱藏的「潛力天花板」，超過之後每一級成本 ×3。<br>
+    ② <b>年中</b>：抽職場事件卡與生活事件，三種應對——穩健（成功率 +20%、效果減半）、照常、全力一搏（成功率 −15%、效果 ×1.5）。<br>
+    ③ <b>年末</b>：依目前身分結算成果；組織內看考績、薪資與升遷，自由工作看市場評價與年收入，創業則看營運里程碑。
+    </p>
+    <div class="mrow"><span>心力</span><span style="color:var(--ink)">隱形的第二條血條，滿了會觸發職業倦怠</span></div>
+    <div class="mrow"><span>景氣</span><span style="color:var(--ink)">影響徵才、裁員與薪資行情</span></div>
+    <div class="mrow"><span>隱藏特質</span><span style="color:var(--ink)">共 20 種，條件不公開，靠自己摸索</span></div>
+    <div class="mrow"><span>種子碼</span><span style="color:var(--ink)">同種子 + 同選擇 = 同一段人生</span></div>
+    <div class="mrow"><span>快捷鍵</span><span style="color:var(--ink)">數字鍵 1–9 可直接選擇選項</span></div>
+    <button class="mbtn" onclick="modalClose()">關閉</button>`);
+}
+document.addEventListener('keydown',e=>{
+  if(!S||$('modal').classList.contains('show'))return;
+  if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+  const n=parseInt(e.key,10);
+  if(n>=1&&n<=9){
+    const list=document.querySelectorAll('#act .opt, #act .alloc-row');
+    if(list[n-1]){ list[n-1].click(); e.preventDefault(); }
+  }
+});
+$('btn-ab').onclick=()=>{ if(S)abModal(); };
+$('btn-menu').onclick=()=>{ if(S)menuModal(); };
+
+/* =========================================================
+   中文排版：避免最後只剩 1–2 個字
+   ========================================================= */
+function polishOrphans(root=document){
+  root.querySelectorAll('.pick span,.opt small,.trait-row .d').forEach(el=>{
+    if(el.dataset.orphanFixed==='1'||el.children.length)return;
+    const txt=(el.textContent||'').trim();
+    const chars=Array.from(txt);
+    if(chars.length<9)return;
+    let tail=4;
+    if(/[。！？）》】」』]$/.test(chars[chars.length-1]))tail=5;
+    if(chars.length-tail<4)return;
+    el.textContent=chars.slice(0,-tail).join('');
+    const s=document.createElement('span');
+    s.className='keep-tail';
+    s.textContent=chars.slice(-tail).join('');
+    el.appendChild(s);
+    el.dataset.orphanFixed='1';
+  });
+}
+
+/* =========================================================
+   開場
+   ========================================================= */
+(function boot(){
+  const q=new URLSearchParams(location.search);
+  let track=q.get('t')||'ENG', bgk=q.get('b')||'NEW';
+  const pt=$('pick-track'), pb=$('pick-bg');
+  pt.innerHTML=Object.keys(TRACKS).map(k=>`<button class="pick${k===track?' sel':''}" data-k="${k}"><b>${TRACKS[k].n}</b><span>${TRACKS[k].d}</span></button>`).join('');
+  pb.innerHTML=Object.keys(BGS).map(k=>`<button class="pick${k===bgk?' sel':''}" data-k="${k}"><b>${BGS[k].n}</b><span>${BGS[k].d}${BGS[k].note?'｜'+BGS[k].note:''}</span></button>`).join('');
+  polishOrphans($('gate-in'));
+  pt.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{ track=b.dataset.k; if(navigator.vibrate)navigator.vibrate(8);
+    pt.querySelectorAll('.pick').forEach(x=>x.classList.toggle('sel',x===b)); });
+  pb.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{ bgk=b.dataset.k; if(navigator.vibrate)navigator.vibrate(8);
+    pb.querySelectorAll('.pick').forEach(x=>x.classList.toggle('sel',x===b)); });
+  if(q.get('n'))$('in-name').value=q.get('n');
+  if(q.get('seed'))$('in-seed').value=q.get('seed');
+  $('btn-start').onclick=()=>{
+    if(navigator.vibrate)navigator.vibrate(15);
+    const name=($('in-name').value||'').trim()||'無名氏';
+    const seed=($('in-seed').value||'').trim()||Math.random().toString(36).slice(2,10);
+    seedInit(seed);
+    S=newState(name,track,bgk,seed);
+    $('gate').style.display='none';
+    document.body.classList.add('playing');
+    /* 第一份工作 */
+    const o=makeOffer(0,0.92+R()*0.2);
+    S.co={type:o.type,name:o.name}; S.salary=o.sal; S.ladder='—';
+    board();
+    divider(`${S.year} 年 · ${S.age} 歲 · 第一份工作`);
+    tlPush(); tlNote(`${S.age} 歲 入職`,3);
+    card('gold','履歷寄出後的第 34 天',
+      `<b class="hl">${o.name}</b>（${COT[o.type].n}）寄來了錄取通知，職稱是 <b>${(TRACKS[track].mgr)[0]}</b>，年薪 <b class="hl">${money(o.sal)}</b>。
+       <div class="sub">${BGS[bgk].n}　·　${TRACKS[track].n}　·　種子碼 ${seed}</div>
+       <div class="sub">你的能力天花板已經在出生時被暗中決定了——有一項會很高，有一項注定平庸。你不會看到數字之外的答案，只能從每一年的手感去猜。</div>`);
+    card('',null,`接下來的每一年會有三個階段：<b>年初</b>擲骰決定你把時間投資在哪裡、<b>年中</b>面對職場與生活事件、<b>年末</b>結算績效、薪資與人事異動。<div class="sub">心力（倦怠量表）是隱形的第二條血條。它歸零之前，沒有人會提醒你。</div>`);
+    next('▸ 開始第一年',()=>{ S.stage='WORK'; startYear(); });
+  };
+  $('in-name').addEventListener('keydown',e=>{ if(e.key==='Enter')$('btn-start').click(); });
+})();
+</script>
+</body>
+</html>
