@@ -5,10 +5,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Yourator 職場人生模擬器</title>
 <meta name="theme-color" content="#edf4ff">
-<meta name="description" content="從新鮮人到職涯終局，一場關於選擇的模擬。每一次擲骰、每一個決定，都會長成你的職涯。">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23006bff'/%3E%3Ctext x='32' y='45' font-family='Helvetica,Arial,sans-serif' font-size='38' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Yourator">
+<meta property="og:title" content="你的職涯，會長成什麼形狀？｜Yourator 職場人生模擬器">
+<meta property="og:description" content="從第一份工作到最後一份，模擬升遷、跳槽、接案、創業、倦怠與轉身。同一組種子碼＋同樣的選擇＝同一段人生。">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="你的職涯，會長成什麼形狀？｜Yourator 職場人生模擬器">
+<meta name="twitter:description" content="從第一份工作到最後一份，模擬升遷、跳槽、接案、創業、倦怠與轉身。">
+<!-- 上線前必填（需要絕對網址，crawler 讀不到相對路徑與 data URI）：
+     <meta property="og:url" content="https://你的網域/career-life">
+     <meta property="og:image" content="https://你的網域/og-career-life.png">   1200×630
+     <meta name="twitter:image" content="https://你的網域/og-career-life.png">
+     沒有 og:image 的話，分享到 LINE／FB／Threads 只會顯示裸連結。 -->
+<meta name="description" content="Yourator 職場人生模擬器：從第一份工作到最後一份，模擬升遷、跳槽、接案、創業、倦怠與轉身。">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 非阻塞載入：連得到但不回應的網路（企業內網／公共 Wi-Fi 登入頁）不會白畫面 -->
+<link rel="stylesheet" referrerpolicy="no-referrer" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap">
 <style>
 :root{
   --bg:#f7f9fc;
@@ -1011,10 +1026,158 @@ input.fi{min-height:48px;border-radius:15px;background:rgba(255,255,255,.68)}
 }
 
 </style>
+<style id="qa-v42-fix">
+/* =========================================================
+   v4-2 修正層（QA 後補）：只加不改，最後宣告勝出
+   ========================================================= */
+
+/* ---- 0. 結構性改動的配套：div → button 之後的樣式重置 ---- */
+.alloc-row,.yr-head{
+  appearance:none;-webkit-appearance:none;
+  font:inherit;color:inherit;text-align:left;width:100%;
+  background:none;border:0;
+}
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* ---- 1. 對比：--dim / --faint 在淺底上原本只有 4.4:1 / 2.4:1 ---- */
+:root{ --dim:#5a6478; --faint:#6b7689; }
+.cell span,.card .sub,.foot,.yr-head,.opt small,.pick span,.trait-row .d,#bd-role,.mud-hudline,.mud-gate-status{
+  color:#5b6980;
+}
+
+/* ---- 2. sticky HUD 改為不透明：原本 70–82% 會讓底下的字穿透疊字 ---- */
+#board{
+  background:linear-gradient(135deg,#ffffff 0%,#f4f9ff 58%,#eaf1ff 100%);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  #board,#act:not(:empty),#gate-in,#modal-box{ background:#fff; }
+  #modal{ background:rgba(15,23,42,.55); }
+}
+
+/* ---- 3. 錨點捲動的預留高度要大於 HUD 實際佔位 ---- */
+html{ scroll-padding-top:300px; }
+
+/* ---- 4. 點擊熱區：兩顆 icon 按鈕原本 34px 且只隔 7px ---- */
+.icon-btn{ position:relative; }
+.icon-btn::after{ content:''; position:absolute; inset:-6px; border-radius:inherit; }
+#bd-top{ gap:10px; }
+
+/* ---- 5. 年份折疊標題：原本對比 1.10:1、命中框僅 16px ---- */
+.yr-head{ min-height:44px; display:flex; align-items:center; cursor:pointer; }
+.yr-block.collapsed .yr-head{ opacity:1; color:#7b899f; }
+
+/* ---- 6. 雷達圖保險（別依賴側欄固定寬） ---- */
+#radar,#radar-m{ max-width:100%; height:auto; }
+
+/* ---- 6b. 全站低於 10px 的字（HUD 年份／年齡、年度標題、footer、統計磚標籤） ---- */
+.stat span{ font-size:11px; letter-spacing:.02em; white-space:nowrap; }
+.stat b i{ font-size:11px; }
+.stat-row{ grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); }
+#bd-name em{ font-size:10.5px; }
+.yr-head{ font-size:11px; }
+.foot,.foot span,.foot b{ font-size:11px; }
+.mud-hudline,.mud-hudline span,.mud-hudline .mud-led,.mud-hudline .mud-code{ font-size:10.5px; }
+
+/* ---- 7. 拿掉假的可點暗示（.chip / .tl 沒有 handler） ---- */
+.chip,.tl{ cursor:default; }
+
+/* ---- 8. 焦點樣式：全檔原本沒有 :focus-visible ---- */
+:where(button,.opt,.pick,.alloc-row,.yr-head,input,a,.mbtn):focus-visible{
+  outline:2px solid #006bff; outline-offset:2px;
+}
+input.fi:focus{ box-shadow:0 0 0 4px rgba(0,107,255,.22); }
+.opt.confirmed{ opacity:.55; pointer-events:none; }
+
+/* ---- 9. 平板：內容欄原本撐滿 740px，約 50 字/行 ---- */
+@media(min-width:641px) and (max-width:1079px){
+  #mid{ max-width:640px; margin-inline:auto; }
+  #shell{ justify-content:center; }
+}
+
+/* ---- 10. 首頁大標：≤380px 原本被壓到 19px，375px 白白浪費 87px ---- */
+#gate-in h1.big{ font-size:clamp(19px,6.4vw,30px); }
+@media(max-width:380px){ #gate-in h1.big{ font-size:clamp(19px,6.4vw,30px); letter-spacing:-.03em; } }
+@media(max-width:300px){ #gate-in h1.big{ white-space:normal; text-wrap:balance; font-size:19px; } }
+
+/* ---- 11. 手機 ---- */
+@media(max-width:640px){
+  /* 11a. 加點面板被 overflow:hidden 硬裁且捲不到（4/7 項能力點不到） */
+  #act:not(:empty){
+    max-height:min(58svh,520px);
+    bottom:calc(7px + env(safe-area-inset-bottom,0px));
+  }
+  #act:not(:empty) > .card{
+    flex:0 0 auto; min-height:auto;
+    overflow-y:auto; overscroll-behavior:contain;
+    max-height:100%;
+  }
+
+  /* 11b. sticky CTA 原本直接蓋住種子碼輸入框。
+     sticky bottom 一定會壓在視窗底部的東西上面，加留白沒有用；
+     改成 fixed 並在容器補上等高的 padding，任何捲動位置都不會蓋到欄位 */
+  #gate-in{ padding-bottom:100px; }
+  .cta{
+    position:fixed; left:14px; right:14px; width:auto;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px));
+    margin-top:0; z-index:20;
+    box-shadow:0 -2px 0 rgba(255,255,255,.9), 0 18px 40px -18px rgba(0,107,255,.55);
+  }
+
+  /* 11c. 安全區域：全檔原本沒有一個 safe-area-inset-bottom */
+  #shell{
+    padding-left:max(9px,env(safe-area-inset-left));
+    padding-right:max(9px,env(safe-area-inset-right));
+  }
+  #board{ padding-top:calc(11px + env(safe-area-inset-top,0px)); }
+  .foot{ padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)); }
+
+  /* 11d. 字級：原本有 8px / 8.5px 的中文 */
+  .cell span{ font-size:10px; line-height:1.25; letter-spacing:.04em; }
+  .mud-hudline{ font-size:10px; line-height:1.25; }
+  .mud-gate-status{ font-size:10px; }
+  .chip{ font-size:11px; }
+  .yr-head,.foot{ font-size:11px; }
+  .card .sub{ font-size:12px; }
+  .opt small{ font-size:12px; }
+  .act-title{ font-size:11.5px; }
+  .alloc-row .vv{ font-size:11px; }
+  .pick span{ font-size:11px; }
+
+  /* 11e. 時間軸在手機原本只剩 1 個 chip，等於看不到職涯軌跡 */
+  #bd-strip{ scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
+  #bd-strip .chip:not(:last-child){ display:inline-flex; }
+  #bd-strip .chip{ scroll-snap-align:end; }
+
+  /* 11f. 熱區 */
+  .icon-btn{ width:36px; height:36px; }
+
+  /* 11g. 同屏 9 層 backdrop-filter，卡片群改實色 */
+  #log .card,#act .opt{
+    -webkit-backdrop-filter:none; backdrop-filter:none;
+    background:linear-gradient(145deg,#ffffff 0%,#fbfdff 58%,#f7fafe 100%);
+  }
+
+  html{ scroll-padding-top:250px; }
+}
+@media(max-width:360px){ html{ scroll-padding-top:290px; } }
+
+/* ---- 12. 動效：原本 .card / .opt 的 rise 沒有被 reduced-motion 攔下 ---- */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important;
+  }
+  .card,.opt{ animation:none!important; }
+}
+</style>
 </head>
 <body>
 <div id="app">
-  <div id="shell">
+  <h1 class="sr-only">Yourator 職場人生模擬器</h1>
+<div id="shell">
     <aside id="left">
       <div class="panel glass">
         <div class="brand" style="margin-bottom:14px">
@@ -1038,24 +1201,25 @@ input.fi{min-height:48px;border-radius:15px;background:rgba(255,255,255,.68)}
           <button class="icon-btn" id="btn-ab" title="能力與特質">◎</button>
           <button class="icon-btn" id="btn-menu" title="選單">≡</button>
         </div>
-        <div id="bd-grid">
+        <div id="bd-grid" aria-live="polite">
           <div class="cell c-ovr"><b id="bd-ovr">—</b><span>綜合</span></div>
           <div class="cell c-sal"><b id="bd-sal">—</b><span>年薪</span></div>
           <div class="cell c-grade"><b id="bd-grade">—</b><span>績效</span></div>
-          <div class="cell c-burn"><b id="bd-burn">—</b><span>心力</span><i class="bar" id="bd-burnbar" style="width:0"></i></div>
+          <div class="cell c-burn"><b id="bd-burn">—</b><span>倦怠</span><i class="bar" id="bd-burnbar" style="width:0"></i></div>
         </div>
         <div id="bd-strip"></div>
       </header>
       <div class="feed-label"><span class="feed-live"></span><b>生涯動態</b><span>WORLD FEED</span></div>
-      <div id="log"></div>
+      <div id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
       <div id="act"></div>
-      <div class="foot">Yourator 職場人生模擬器　·　SEED <b id="ft-seed">—</b></div>
+      <div class="foot">Yourator 職場人生模擬器　·　SEED <b id="ft-seed">—</b><br>
+        <a href="mailto:mkt@yourator.co?subject=%E8%81%B7%E5%A0%B4%E4%BA%BA%E7%94%9F%E6%A8%A1%E6%93%AC%E5%99%A8%20%E5%9B%9E%E9%A5%8B" style="color:var(--dim);text-decoration:underline">公測回報：發現問題或有建議，寄信給我們</a></div>
     </main>
 
     <aside id="right" class="right">
       <div class="panel glass" id="pn-ab">
         <h4>能力值</h4>
-        <svg id="radar" width="230" height="196" viewBox="0 0 230 196"></svg>
+        <svg id="radar" role="img" aria-label="能力雷達圖" width="230" height="196" viewBox="0 0 230 196"></svg>
         <div id="ab-list"></div>
       </div>
       <div class="panel glass" id="pn-tr" style="display:none">
@@ -1066,7 +1230,7 @@ input.fi{min-height:48px;border-radius:15px;background:rgba(255,255,255,.68)}
   </div>
 </div>
 
-<div id="modal"><div id="modal-box" class="glass"></div></div>
+<div id="modal" role="dialog" aria-modal="true" aria-label="面板"><div id="modal-box" class="glass"></div></div>
 
 <div id="gate">
   <div id="gate-in" class="glass">
@@ -1075,14 +1239,14 @@ input.fi{min-height:48px;border-radius:15px;background:rgba(255,255,255,.68)}
       <div><b>Yourator</b><span>職場人生模擬器</span></div>
     </div>
     <h1 class="big">你的職涯，會長成<em>什麼形狀</em>？</h1>
-    <p class="lede">從第一份工作開始，經歷升遷、跳槽、自由接案、倦怠、創業與轉身。能力靠擲骰累積，方向靠你自己選。同一組種子碼＋同樣的選擇＝同一段人生。</p>
-    <label class="fl">你的名字</label>
+    <p class="lede">從第一份工作開始，經歷升遷、跳槽、自由接案、倦怠、創業與轉身。能力靠擲骰累積，方向靠你自己選。同一組種子碼 + 同樣的選擇 = 同一段人生。</p>
+    <label class="fl" for="in-name">你的名字</label>
     <input class="fi" id="in-name" maxlength="12" placeholder="輸入姓名">
     <label class="fl">職涯軌道</label>
     <div class="pickgrid" id="pick-track"></div>
     <label class="fl">起手學經歷</label>
     <div class="pickgrid" id="pick-bg"></div>
-    <label class="fl">種子碼（可留空隨機）</label>
+    <label class="fl" for="in-seed">種子碼（可留空隨機）</label>
     <input class="fi" id="in-seed" maxlength="24" placeholder="例如：yourator2026">
     <button class="cta" id="btn-start">開始這一生 →</button>
   </div>
@@ -1096,12 +1260,14 @@ input.fi{min-height:48px;border-radius:15px;background:rgba(255,255,255,.68)}
 
 /* ---------- 種子亂數 ---------- */
 let _s=0;
+function seedState(v){ if(v!==undefined)_s=v|0; return _s|0; }
 function seedInit(str){ _s=1779033703; for(let i=0;i<str.length;i++){ _s=Math.imul(_s^str.charCodeAt(i),3432918353); _s=_s<<13|_s>>>19; } }
 function R(){ _s|=0; _s=_s+0x6D2B79F5|0; let t=Math.imul(_s^_s>>>15,1|_s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }
 const ri=(a,b)=>a+Math.floor(R()*(b-a+1));
 const pick=a=>a[Math.floor(R()*a.length)];
 const chance=p=>R()*100<p;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const N0=sd=>(R()+R()+R()+R()-2)/2*sd*2;
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } return a; }
 
@@ -1109,55 +1275,55 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)
 const AB=['craft','exec','comm','lead','learn','net','grit'];
 const ABL={craft:'專業力',exec:'執行力',comm:'溝通力',lead:'領導力',learn:'學習力',net:'影響力',grit:'心理韌性'};
 const ABD={
-  craft:'把事情做對的硬實力',exec:'把事情做完的推進力',comm:'把人對齊的表達力',
+  craft:'把事情做對的硬實力',exec:'把事情做完的推進力',comm:'讓一群人講同一件事的表達力',
   lead:'讓一群人變強的能力',learn:'吸收新事物的速度',net:'業界能見度與人脈',grit:'扛得住壓力的底盤'
 };
 
 /* ---------- 職涯軌道 ---------- */
 const TRACKS={
   ENG:{n:'軟體工程',d:'寫程式、修系統、扛上線',
-    w:{craft:.29,exec:.21,learn:.17,comm:.12,lead:.10,net:.06,grit:.05},
-    mgr:['軟體工程師','工程師','資深工程師','技術主管','工程總監','技術副總','技術長 CTO'],
-    ic:['軟體工程師','工程師','資深工程師','Staff 工程師','首席工程師','傑出工程師','技術院士']},
+    w:{craft:.26,exec:.20,learn:.16,comm:.14,lead:.11,net:.08,grit:.05},
+    mgr:['助理工程師','軟體工程師','資深工程師','技術主管','工程總監','技術副總','技術長 CTO'],
+    ic:['助理工程師','軟體工程師','資深工程師','Staff 工程師','首席工程師','傑出工程師','技術院士']},
   PM:{n:'產品管理',d:'定義問題、對齊團隊、扛成敗',
-    w:{comm:.21,craft:.17,lead:.17,exec:.16,learn:.12,net:.12,grit:.05},
+    w:{comm:.26,craft:.20,lead:.16,exec:.14,learn:.11,net:.08,grit:.05},
     mgr:['產品專員','產品經理','資深產品經理','產品主管','產品總監','產品副總','產品長 CPO'],
-    ic:['產品專員','產品經理','資深產品經理','主任產品經理','首席產品經理','產品策略長','產品院士']},
+    ic:['產品專員','產品經理','資深產品經理','主任產品經理','首席產品經理','傑出產品專家','產品院士']},
   DES:{n:'設計',d:'從體驗到介面，把感覺變成規格',
-    w:{craft:.30,comm:.18,learn:.16,exec:.16,net:.10,lead:.06,grit:.04},
+    w:{craft:.26,comm:.20,learn:.16,exec:.14,net:.11,lead:.08,grit:.05},
     mgr:['UI/UX 設計師','產品設計師','資深設計師','設計主管','設計總監','設計副總','設計長 CDO'],
-    ic:['UI/UX 設計師','產品設計師','資深設計師','主任設計師','首席設計師','設計顧問','設計院士']},
+    ic:['UI/UX 設計師','產品設計師','資深設計師','主任設計師','首席設計師','傑出設計師','設計院士']},
   MKT:{n:'行銷成長',d:'把好東西讓對的人看見',
-    w:{net:.22,comm:.20,craft:.18,learn:.14,exec:.14,lead:.08,grit:.04},
+    w:{net:.26,comm:.20,craft:.16,learn:.14,exec:.11,lead:.08,grit:.05},
     mgr:['行銷企劃','行銷經理','資深行銷經理','行銷主管','行銷總監','行銷副總','行銷長 CMO'],
-    ic:['行銷企劃','成長行銷','資深成長行銷','主任成長專家','首席成長專家','成長顧問','行銷院士']},
+    ic:['行銷企劃','成長行銷','資深成長行銷','主任成長專家','首席成長專家','傑出成長專家','行銷院士']},
   BIZ:{n:'業務／商務開發',d:'找到人、談成事、把數字做出來',
-    w:{comm:.25,net:.23,exec:.16,craft:.13,lead:.10,grit:.08,learn:.05},
+    w:{comm:.26,net:.20,exec:.16,craft:.14,lead:.11,grit:.08,learn:.05},
     mgr:['業務專員','業務經理','資深業務經理','業務主管','業務總監','商務副總','營收長 CRO'],
-    ic:['業務專員','客戶經理','資深客戶經理','策略客戶經理','首席客戶總監','商務顧問','商務院士']},
+    ic:['業務專員','客戶經理','資深客戶經理','策略客戶經理','首席客戶總監','傑出客戶總監','商務院士']},
   OPS:{n:'營運／人資',d:'讓組織這台機器不要卡住',
-    w:{exec:.24,comm:.21,craft:.16,lead:.15,learn:.11,net:.08,grit:.05},
+    w:{exec:.26,comm:.20,craft:.16,lead:.14,learn:.11,net:.08,grit:.05},
     mgr:['營運專員','營運經理','資深營運經理','營運主管','營運總監','營運副總','營運長 COO'],
-    ic:['營運專員','營運夥伴','資深營運夥伴','主任營運夥伴','首席營運夥伴','組織顧問','營運院士']}
+    ic:['營運專員','營運夥伴','資深營運夥伴','主任營運夥伴','首席營運夥伴','傑出組織專家','營運院士']}
 };
 
 /* ---------- 起手學經歷 ---------- */
 const BGS={
-  NEW:{n:'一般大學畢業',d:'22 歲，什麼都不會，但什麼都想試',age:22,base:[24,32],mod:{},note:''},
-  TOP:{n:'頂大／海外學位',d:'22 歲，起薪好看，期待值也高',age:22,base:[26,34],mod:{craft:2,learn:2,net:2},note:'起薪係數 ×1.12'},
-  BOOT:{n:'轉職訓練營',d:'25 歲，繞了一段路才走到這裡',age:25,base:[22,29],mod:{learn:4,grit:5,craft:-2},note:'學習力與韌性起步高'},
-  GRAD:{n:'研究所畢業',d:'24 歲，論文寫到懷疑人生',age:24,base:[25,33],mod:{craft:4,learn:3,net:-3},note:'解鎖「學院派」路線'}
+  NEW:{n:'一般大學畢業',d:'22 歲，履歷上還沒有東西，每一格都空著等你填',age:22,base:[24,32],mod:{},note:''},
+  TOP:{n:'頂大／海外學位',d:'22 歲，第一關比較好過，期待值也一起被拉高',age:22,base:[24,32],mod:{net:2,comm:1},note:'起薪係數 ×1.12（27 歲前）'},
+  BOOT:{n:'轉職訓練營',d:'25 歲，起步晚三年，但你很清楚自己在換什麼',age:25,base:[24,32],mod:{learn:5,grit:5,exec:2},note:'學習力、韌性與執行力起步高'},
+  GRAD:{n:'研究所畢業',d:'24 歲，論文寫到懷疑人生',age:24,base:[25,33],mod:{craft:4,learn:4,net:-1},note:'專業力與學習力起步高，人脈起步較低'}
 };
 
 /* ---------- 職級階梯 ---------- */
 const TIERS=[
-  {k:'JR', n:'初階', avg:32, min:0,  base:52,  kk:2.5},
-  {k:'MID',n:'中階', avg:43, min:36, base:78,  kk:4},
-  {k:'SR', n:'資深', avg:54, min:46, base:118, kk:7},
-  {k:'LD', n:'主管級',avg:63,min:55, base:168, kk:11},
-  {k:'DR', n:'總監級',avg:71,min:64, base:275, kk:18},
-  {k:'VP', n:'副總級',avg:78,min:71, base:430, kk:30},
-  {k:'C',  n:'C-Level',avg:85,min:78,base:750, kk:52}
+  {k:'JR', n:'初階',  icn:'初階',   avg:30, pavg:30, min:0,  base:52,  kk:2.5},
+  {k:'MID',n:'中階',  icn:'中階',   avg:41, pavg:41, min:36, base:92,  kk:4},
+  {k:'SR', n:'資深',  icn:'資深',   avg:50, pavg:50, min:46, base:148, kk:7},
+  {k:'LD', n:'主管級',icn:'專家級', avg:59, pavg:58, min:55, base:240, kk:11},
+  {k:'DR', n:'總監級',icn:'首席級', avg:67, pavg:65, min:64, base:370, kk:18},
+  {k:'VP', n:'副總級',icn:'傑出級', avg:74, pavg:71, min:71, base:560, kk:30},
+  {k:'C',  n:'最高經營層',icn:'院士級',avg:81,pavg:77,min:78,base:940, kk:52}
 ];
 
 /* ---------- 公司類型 ---------- */
@@ -1203,40 +1369,49 @@ const EVENTS=[
   {t:'跨部門專案啟動',s:'PM 把你拉進一個橫跨三個部門的專案，沒有人真的知道誰該負責什麼。',
    g:[['comm',2],['lead',1]],gt:'你在混亂中畫出了第一張權責圖，會議終於開得完。',
    b:[['comm',-2]],bt:'三方各說各話，你夾在中間，最後被當成傳話筒。'},
-  {t:'Code Review 修羅場',tr:['ENG'],s:'資深同事在你的 PR 上留了 47 則留言。',
+  {t:'code review 修羅場',tr:['ENG'],s:'資深同事在你的 PR 上留了 47 則留言。',
+   sf:'客戶的技術負責人在你的交付檔上留了 47 則意見。',
+   so:'你們沒有人比你更熟這塊，但你請的外部顧問在你的 PR 上留了 47 則留言。',
    g:[['craft',2]],gt:'你一則一則改完，順手把整段邏輯重寫得更乾淨。',
    b:[['craft',-1],['grit',-1]],bt:'你邊改邊懷疑自己，最後只把註解補一補就 merge 了。'},
-  {t:'公開簡報 Demo Day',s:'這次輪到你上台，台下坐著三個部門的主管。',
+  {t:'公開簡報 demo day',s:'這次輪到你上台，台下坐著三個部門的主管。',
    g:[['comm',2],['net',1]],gt:'你把複雜的東西講得像故事，散場後有人主動來加你 LinkedIn。',
    b:[['comm',-2]],bt:'投影片跑版、時間爆掉，你講到最後只剩自己在聽。'},
   {t:'導入新工具鏈',s:'團隊決定換掉用了五年的老系統，沒有人自願當第一隻白老鼠。',
+   so:'你們決定把手工流程換成正式系統，沒有人自願當第一隻白老鼠。',
    g:[['learn',2],['exec',1]],gt:'你花了三個週末啃文件，變成全公司最懂它的人。',
    b:[['exec',-2]],bt:'轉換期比想像中長，舊流程新流程都在跑，事情變成兩倍。'},
   {t:'帶新人',s:'主管把一位新報到的夥伴交給你帶。',
-   g:[['lead',2]],gt:'三個月後他能獨立出貨了，還說很慶幸第一個帶他的人是你。',
-   b:[['lead',-1],['grit',-1]],bt:'你自己的事都做不完，只好讓他自己摸索，兩邊都卡住。'},
+   g:[['lead',2]],gt:'三個月後這位夥伴能獨立出貨了，還說很慶幸第一個帶的人是你。',
+   b:[['lead',-1],['grit',-1]],bt:'你自己的事都做不完，只好讓對方自己摸索，兩邊都卡住。'},
   {t:'向上管理',s:'主管問你「這季你想拿下什麼」，這句話其實是一道考題。',
-   g:[['net',2],['comm',1]],gt:'你把想做的事翻譯成他在意的指標，資源就這樣要到了。',
-   b:[['net',-2]],bt:'你講了一堆執行細節，他聽完只說「你先做做看」。'},
+   g:[['net',2],['comm',1]],gt:'你把想做的事翻譯成主管在意的指標，資源就這樣要到了。',
+   b:[['net',-2]],bt:'你講了一堆執行細節，主管聽完只說「你先做做看」。'},
   {t:'客戶提案',tr:['BIZ','MKT','PM'],s:'對方窗口在會議前十分鐘說：老闆等下也會進來聽。',
    g:[['net',2],['comm',1]],gt:'你當場改了切入角度，老闆聽完直接問「什麼時候可以開始」。',
    b:[['net',-2]],bt:'簡報照原本講完，對方禮貌地說「再研究看看」。'},
   {t:'數據會議',s:'週會上有人問：這個數字為什麼會這樣？全場看向你。',
+   sf:'客戶在驗收會上問：這個數字為什麼會這樣？全場看向你。',
+   so:'投資人在月報會上問：這個數字為什麼會這樣？全場看向你。',
    g:[['craft',2]],gt:'你不只答出來，還順手指出另一個沒人注意到的漏洞。',
    b:[['craft',-2]],bt:'你發現自己也不確定口徑，只能說「我回去確認一下」。'},
-  {t:'Side Project 上線',s:'你在下班後做的小東西，突然有人在社群上分享了。',
-   g:[['net',2],['craft',1]],gt:'一夜之間破萬次瀏覽，有獵頭因為這個找上你。',
+  {t:'side project 上線',s:'你在下班後做的小東西，突然有人在社群上分享了。',
+   sf:'你在沒有客戶的那兩週做的小東西，突然有人在社群上分享了。',
+   sg:'沒有工作的這幾週，你把想做很久的小東西做出來了，突然有人在社群上分享。',
+   g:[['net',2],['craft',1]],gt:'一夜之間破萬次瀏覽，有獵頭因為這個找上你。那三週你也睡不到六小時。',
    b:[['grit',-2]],bt:'流量沒來，倒是連著三週睡不到六小時。'},
   {t:'線上課程進修',s:'你買了一堂課，接下來就是能不能真的上完的問題。',
    g:[['learn',2]],gt:'你不只上完，還做完全部作業，開始在工作裡用上。',
    b:[['learn',-1],['grit',-1]],bt:'進度停在第三章，跟前面買的那五堂一樣。'},
   {t:'加班潮',s:'季底衝刺，整層樓的燈到十一點都還亮著。',
+   so:'月底衝刺，那張長桌到十一點還坐滿人。',
    g:[['exec',2]],gt:'你把節奏抓穩，該砍的砍、該延的延，準時把版本推出去。',
    b:[['grit',-2],['exec',-1]],bt:'你陪著加班到最後，成果卻只是把爛攤子推遲了一季。'},
   {t:'組織改組',s:'一封全員信，你的部門明天起換一個名字、換一個老闆。',
    g:[['net',1],['grit',1]],gt:'你主動去跟新主管做了一次自我介紹，位置反而更好了。',
    b:[['net',-2]],bt:'新的權力地圖畫出來，上面沒有你的名字。'},
   {t:'遠端協作實驗',s:'團隊有一半的人在不同城市，同步開會變成一件奢侈的事。',
+   sf:'這個案子的另外兩位合作者在不同城市，同步開會變成一件奢侈的事。',
    g:[['comm',2],['exec',1]],gt:'你把決策改成非同步文件流，大家反而更清楚彼此在幹嘛。',
    b:[['exec',-2]],bt:'訊息越來越多、共識越來越少，事情在群組裡爛掉。'},
   {t:'訂定年度 OKR',s:'主管把整個團隊的目標設定丟給你先擬一版。',
@@ -1256,14 +1431,15 @@ const EVENTS=[
    b:[['exec',-2],['grit',-1]],bt:'交接只做了一半人就走了，你花了半年在踩地雷。'},
   {t:'遇見前輩',tag:'mentor',s:'一場聚會上，你認識了一位走過同樣路的前輩。',
    g:[['rnd',2]],gt:'一句話點醒你卡了兩年的問題，你們約好每季聊一次。',
-   b:[['rnd',-1]],bt:'你聽了一整晚，發現他的路徑跟你的處境完全不同。'},
-  {t:'多元共融工作坊',s:'公司辦了一場關於共融與偏見的內訓，很多人請假沒去。',
+   b:[['rnd',-1]],bt:'你聽了一整晚，對方走過的路跟你現在的處境對不上。'},
+  {t:'多元共融工作坊',s:'公司辦了一場關於共融與偏見的內訓，行事曆上跟另一場會議撞期。',
    g:[['lead',2],['comm',1]],gt:'你把學到的東西實際改進了團隊的面試流程，錄取樣貌變得更廣。',
    b:[['lead',-1]],bt:'你去了，筆記寫得很滿，回到座位就沒有下文。'},
   {t:'導入 AI 工具',s:'主管丟了一句：看看這個能不能幫我們省時間。',
-   g:[['learn',2],['craft',1]],gt:'你重新設計了工作流，團隊每週省下的時間開始有感。',
+   g:[['learn',2],['craft',1]],gt:'你重新設計了工作流程，團隊每週少開兩場同步會。',
    b:[['learn',-2]],bt:'工具導了、流程沒改，最後大家默默用回原本的方式。'},
   {t:'跨國協作',s:'新專案的另一半團隊在時差七小時的地方。',
+   sf:'這個案子的客戶在時差七小時的地方，你們只有兩小時是重疊的。',
    g:[['comm',2],['learn',1]],gt:'你把交接寫成規格，兩邊接力二十四小時不斷線。',
    b:[['comm',-2]],bt:'文化與時差把訊息磨得面目全非，進度反覆重來。'},
   {t:'擔任內部講師',s:'HR 問你要不要開一堂給全公司的課。',
@@ -1276,24 +1452,26 @@ const EVENTS=[
    g:[['net',2],['exec',1]],gt:'現場爆滿，後續三個月的名單都吃這一場的紅利。',
    b:[['exec',-2]],bt:'流程出包，你在後台救火，照片裡都是你的背影。'},
   {t:'職涯一對一',s:'主管問你：三年後你想在哪裡？',
-   g:[['rnd',2]],gt:'你認真想過這題，答得具體，他開始把機會往你這裡放。',
+   g:[['rnd',2]],gt:'你認真想過這題，答得具體，主管開始把機會往你這裡放。',
    b:[['grit',-1]],bt:'你愣了三秒，說「我還沒想那麼遠」，話題就過去了。'},
   {t:'流程自動化提案',tr:['OPS','ENG','PM'],s:'你發現有件事，全公司每個月都要手動做一次。',
    g:[['exec',2],['craft',1]],gt:'自動化上線，每個月替公司省下一百多個工時。',
    b:[['craft',-2]],bt:'例外狀況太多，自動化跑出來的東西還要人工對一次。'},
-  {t:'第一次帶團隊',s:'你手上突然多了三個人的績效要負責。',
-   g:[['lead',2],['comm',1]],gt:'你學會把功勞讓出去、把責任扛回來，團隊開始跑起來了。',
+  {t:'帶起一個小團隊',s:'你手上突然多了三個人的績效要負責。',
+   g:[['lead',2],['comm',1]],gt:'你把功勞讓出去、把責任扛回來，三個人這季各自出了一版東西。',
    b:[['lead',-2],['grit',-1]],bt:'你什麼都想自己來，結果三個人閒著、你累垮。'}
 ];
 
 /* ---------- 身分限定事件 ---------- */
+/* 待業／進修：既沒有公司也沒有客戶，只有這幾張說得通 */
+const GAP_EVENT_TITLES=new Set(['線上課程進修','遇見前輩','公開分享與社群經營','side project 上線']);
 const FREE_EVENT_TITLES=new Set([
-  'Code Review 修羅場','客戶提案','數據會議','Side Project 上線','線上課程進修',
+  'code review 修羅場','客戶提案','數據會議','side project 上線','線上課程進修',
   '遠端協作實驗','公開分享與社群經營','遇見前輩','跨國協作','品牌活動操盤'
 ]);
 const FOUNDER_EVENT_TITLES=new Set([
   '客戶提案','數據會議','導入新工具鏈','加班潮','上線危機',
-  '公開分享與社群經營','遇見前輩','跨國協作','第一次帶團隊','品牌活動操盤'
+  '公開分享與社群經營','遇見前輩','跨國協作','帶起一個小團隊','品牌活動操盤'
 ]);
 const FREE_EVENTS=[
   {t:'報價談判',s:'新客戶問：「如果長期合作，這個價格還有空間嗎？」',
@@ -1305,12 +1483,12 @@ const FREE_EVENTS=[
   {t:'老客戶轉介紹',s:'一個合作過兩次的客戶，把你介紹給另一間公司。',
    g:[['net',3]],gt:'新案沒有比稿、沒有殺價，信任直接從上一段合作延續過來。',
    b:[['net',-1]],bt:'期待被拉得太高，第一次會議反而有點接不住。'},
-  {t:'三個 Deadline 撞在一起',s:'三個客戶都覺得自己的案子「這週一定要」。',
-   g:[['exec',2],['grit',1]],gt:'你把優先級、交付物和回覆時段切乾淨，三邊都準時交件。',
+  {t:'三個 deadline 撞在一起',s:'三個客戶都覺得自己的案子「這週一定要」。',
+   g:[['exec',2],['grit',1]],gt:'你把優先順序、交付項目和回覆時段切乾淨，三邊都準時交件。',
    b:[['exec',-2],['grit',-1]],bt:'你一直切換工作，最後每一案都只差那麼一點。'},
   {t:'案源空窗',s:'行事曆突然空了下來。沒有主管催你，也沒有下一筆款項在路上。',
    g:[['net',2],['learn',1]],gt:'你整理案例、主動聯絡舊客戶，兩週後新的合作開始進來。',
-   b:[['grit',-2]],bt:'你每天刷新信箱，越看越焦慮，卻沒有真的把自己推向市場。'},
+   b:[['grit',-2]],bt:'你一天刷十次信箱，作品集停在半年前那一版。'},
   {t:'作品被看見',s:'你把最近一個專案整理成案例分享，意外被業界帳號轉發。',
    g:[['net',2],['craft',1]],gt:'詢問合作的訊息開始出現，你第一次感覺作品真的能替自己說話。',
    b:[['grit',-1]],bt:'貼文反應普通，但你至少把散落的成果整理成了一份像樣的作品集。'}
@@ -1320,7 +1498,7 @@ const FOUNDER_EVENTS=[
    g:[['comm',2],['net',1]],gt:'你守住價格，也把合作範圍擴大，跑道多出幾個月。',
    b:[['net',-2]],bt:'對方砍掉一半預算，你回到辦公室重新算了一次現金流。'},
   {t:'核心人才想離開',s:'團隊裡最關鍵的人約你散步，第一句就是：「我最近在想下一步。」',
-   g:[['lead',2],['comm',1]],gt:'你沒有先談留人條件，而是先問他真正卡在哪。最後你們重做了角色設計。',
+   g:[['lead',2],['comm',1]],gt:'你先問對方真正卡在哪，留人條件一句都沒提。最後你們重做了角色設計。',
    b:[['lead',-2]],bt:'你急著畫大餅，對方反而更確定自己該走。'},
   {t:'投資人月報',s:'數字沒有達標，但董事會明早九點還是會準時開始。',
    g:[['comm',2],['exec',1]],gt:'你把問題、假設和下一步拆得很清楚，沒有人因為壞消息失去信心。',
@@ -1333,20 +1511,20 @@ const FOUNDER_EVENTS=[
 /* ---------- 生活事件 ---------- */
 const LIFE=[
   {k:'gym',t:'健身計畫',c:s=>true,w:1,s:'你辦了健身房會員，這次想撐過第三個月。',
-   g:[['grit',2]],gt:'體能回來了，忙到晚上十點也不再覺得世界末日。',b:[['grit',-1]],bt:'第五次沒去之後，你把 App 通知關掉了。',burnG:-8,burnB:2,tag:'health'},
+   g:[['grit',2]],gt:'體能回來了。你發現六點下班去運動，比十點下班躺著滑手機更容易睡著。',b:[['grit',-1]],bt:'第五次沒去之後，你把 App 通知關掉了。',burnG:-8,burnB:2,tag:'health'},
   {k:'sleep',t:'睡眠債',c:s=>s.burn>=35,w:1.6,s:'你已經連續兩個月在凌晨兩點以後才闔眼。',
    g:[['grit',1]],gt:'你狠下心把手機丟到客廳，作息一週內拉了回來。',b:[['grit',-2]],bt:'你告訴自己再撐一下，然後開始靠咖啡因過日子。',burnG:-14,burnB:12,tag:'health'},
-  {k:'trip',t:'把年假一次休完',c:s=>s.stage==='WORK'&&s.burn>=25,w:1.2,s:'你看著累積到快過期的年假，決定訂一張機票。',
+  {k:'trip',t:'把年假一次休完',c:s=>s.stage==='WORK'&&s.tenure>=3&&s.burn>=25,w:1.2,s:'你看著帳上還沒休完的特休。不休完公司要折現，但你更想要那十四天。',
    g:[['grit',2],['learn',1]],gt:'十四天不看訊息。回來那天，你發現公司沒有你也沒有倒。',
    b:[['grit',-1]],bt:'你人在海邊，筆電還是打開了三次。',burnG:-26,burnB:-6,tag:'rest'},
   {k:'cert',t:'考證照／進修',c:s=>true,w:.9,s:'你報名了一張跟工作有關的證照考試。',
    g:[['learn',2],['craft',1]],gt:'一次就過。名字後面多了幾個字母，履歷也多了一行。',
    b:[['learn',-1]],bt:'考期到了，你連考古題都還沒翻完。',burnG:2,burnB:4},
   {k:'family',t:'成家',c:s=>s.age>=26&&!s.married,w:1.1,s:'你和交往多年的另一半，開始認真討論下一步。',
-   g:[['grit',3]],gt:'你們決定一起走。從此加班的理由裡，多了一個要回去的地方。',
+   g:[['grit',3]],gt:'你們決定一起走。從此每天六點，你會開始收東西。',
    b:[],bt:'你們決定先各自把想做的事做完，這件事再說。',burnG:-10,burnB:0,tag:'marry'},
   {k:'kid',t:'新成員報到',c:s=>s.married&&s.kids<3&&s.age>=28,w:1.0,s:'家裡即將多一個人。',
-   g:[['grit',3],['exec',1]],gt:'你學會了世界上最狠的時間管理：因為六點一定要走。',
+   g:[['grit',3],['exec',1]],gt:'你申請了育嬰留職停薪的半年，回來時位置還在。你也學會了世界上最狠的時間管理：因為六點一定要走。',
    b:[],bt:'你們決定再等一陣子，先把手上的事情告一段落。',burnG:6,burnB:0,tag:'kid'},
   {k:'care',t:'照顧家人',c:s=>s.age>=40,w:.8,s:'家裡長輩身體出了狀況，需要有人排班。',
    g:[['grit',2],['comm',1]],gt:'你重新排了工作節奏，把重要的事留在白天，也把家顧好了。',
@@ -1358,13 +1536,13 @@ const LIFE=[
    g:[['grit',1],['exec',1]],gt:'新家離你最常工作的地方二十分鐘，你每天多睡了一小時。',
    b:[['grit',-1]],bt:'租金省了，通勤變成單程七十分鐘。',burnG:-8,burnB:8},
   {k:'freebreak',t:'主動留一段空檔',c:s=>s.stage==='FREE'&&s.burn>=25,w:1.35,s:'你第一次刻意讓行事曆空兩週，不排提案、不塞新案。',
-   g:[['grit',2]],gt:'沒有案子追著跑的第六天，你終於想起自由工作原本也包含「自由」。',
+   g:[['grit',2]],gt:'空到第六天，你開始重新排下半年的接案節奏，而不是等電話。',
    b:[['grit',-1]],bt:'你嘴上說休息，還是忍不住接了兩個急件。',burnG:-22,burnB:-4,tag:'rest'},
   {k:'checkup',t:'健康檢查紅字',c:s=>s.burn>=55||s.age>=45,w:1.4,s:'體檢報告上，有幾個數字被標成紅色。',
    g:[['grit',2]],gt:'你認真調整了作息與飲食，三個月後複檢全部回到綠色。',
    b:[['grit',-3],['exec',-1]],bt:'你把報告收進抽屜，跟去年那份放在一起。',burnG:-18,burnB:14,tag:'health'},
   {k:'mentee',t:'成為別人的前輩',c:s=>s.age>=30,w:.9,s:'有個後輩私訊你，問能不能跟你聊聊職涯。',
-   g:[['lead',2],['net',1]],gt:'你認真回了一封長訊息。兩年後，他成了你最想合作的夥伴。',
+   g:[['lead',2],['net',1]],gt:'你認真回了一封長訊息。兩年後，這個人成了你最想合作的夥伴。',
    b:[['lead',-1]],bt:'你一直說改天再約，那個改天沒有來。',burnG:2,burnB:0},
   {k:'community',t:'加入社群',c:s=>true,w:.9,s:'你被拉進一個同業的私密社群。',
    g:[['net',2],['learn',1]],gt:'你在裡面認真回答問題，慢慢變成大家會 tag 的那個人。',
@@ -1373,26 +1551,26 @@ const LIFE=[
 
 /* ---------- 隱藏特質 ---------- */
 const TR={
-  prodigy:{n:'學霸體質',tone:'rare',fx:'訓練骰永久 ≥4 點；事件卡好結果機率提升至 70%'},
-  late:{n:'大器晚成',tone:'rare',fx:'訓練骰永久 ≥3 點；事件卡好結果機率提升至 70%'},
-  steel:{n:'鋼鐵神經',tone:'pos',fx:'心力上限翻倍；硬撐成功率翻倍'},
+  prodigy:{n:'學霸體質',tone:'rare',fx:'自我投資骰永久 ≥4 點；事件卡好結果機率提升至 70%'},
+  late:{n:'大器晚成',tone:'rare',fx:'自我投資骰永久 ≥3 點；事件卡好結果機率提升至 70%'},
+  steel:{n:'鋼鐵神經',tone:'neg',fx:'別人給你的評語。實際效果：倦怠上限 100 → 150、硬撐成功率 85%，但每年倦怠回復 −60%'},
   disc:{n:'自律狂',tone:'pos',fx:'職涯衰退整體延後三年'},
   kol:{n:'業界名人',tone:'pos',fx:'獵頭來訪機率翻倍；跳槽薪資 ×1.15'},
-  mentorMagnet:{n:'貴人磁鐵',tone:'pos',fx:'每年訓練骰 +1 顆'},
+  mentorMagnet:{n:'貴人磁鐵',tone:'pos',fx:'每年自我投資骰 +1 顆'},
   teamHeart:{n:'團隊之心',tone:'pos',fx:'升遷評議成功率 +18%'},
   veteran:{n:'公司元老',tone:'pos',fx:'留任加薪係數 ≥1.2；結算 +260 分'},
-  academy:{n:'學院派',tone:'pos',fx:'30 歲前心力耗損 −15%；每年 35% 機率多擲一顆骰'},
-  phoenix:{n:'浴火重生',tone:'pos',fx:'覆蓋「過勞體質」，心力耗損回復正常，並獲得 8 點能力'},
-  polymath:{n:'斜槓達人',tone:'pos',fx:'副業與投資收益永久 +40%'},
-  legend:{n:'產業傳奇',tone:'rare',fx:'名人堂第一年即入選的稀有稱號'},
+  academy:{n:'學院派',tone:'pos',fx:'30 歲前倦怠累積 −15%；每年 35% 機率多擲一顆骰'},
+  phoenix:{n:'浴火重生',tone:'pos',fx:'覆蓋「過勞體質」，倦怠累積回復正常，並獲得 8 點能力'},
+  polymath:{n:'斜槓達人',tone:'pos',fx:'副業收入永久 +37%'},
+  legend:{n:'產業傳奇',tone:'rare',fx:'職涯評價達到最高級才會出現的稀有稱號'},
   founder:{n:'創業者靈魂',tone:'rare',fx:'曾把一間公司從 0 帶到有人願意買單'},
-  burnout:{n:'過勞體質',tone:'neg',fx:'心力耗損永久 ×1.35'},
+  burnout:{n:'過勞體質',tone:'neg',fx:'倦怠累積永久 ×1.35'},
   lone:{n:'獨行俠',tone:'neg',fx:'升遷評議成功率 −20%；跳槽條件變差'},
-  stuck:{n:'萬年基層',tone:'neg',fx:'事件卡失敗率 +8%'},
-  imposter:{n:'冒牌者症候群',tone:'neg',fx:'系統綜合評價 −3，直到升職或得獎才解除'},
+  stuck:{n:'原地久留',tone:'neg',fx:'事件卡失敗率 +12%'},
+  imposter:{n:'冒牌者症候群',tone:'neg',fx:'系統綜合評價 −3，直到升職、得獎或連續三年考績穩定才解除'},
   drifter:{n:'職場浮萍',tone:'neg',fx:'跳槽薪資係數 ×0.85'},
   onetrick:{n:'單一維度',tone:'neg',fx:'能力嚴重偏科，升遷評議與跳槽受限'},
-  freeloader:{n:'薪水小偷',tone:'neg',fx:'事件卡失敗率永久 +10%'}
+  freeloader:{n:'期待落差',tone:'neg',fx:'事件卡失敗率永久 +14%'}
 };
 
 /* ---------- 獎項 ---------- */
@@ -1414,7 +1592,7 @@ const AWARDS={
    ========================================================= */
 let S=null, stepQ=[], _curYearBody=null;
 const $=id=>document.getElementById(id);
-const MAXYR=10;
+const LOG_KEEP_YEARS=10;   /* 只影響畫面上保留幾個年度區塊，不是遊戲年限 */
 
 function newState(name,track,bgk,seed){
   const bg=BGS[bgk];
@@ -1430,19 +1608,40 @@ function newState(name,track,bgk,seed){
     year:2026,age:bg.age,
     ab,pot,carry:{},
     stage:'WORK',        /* WORK / GAP / FOUNDER / FREE / STUDY */
-    tier:0, ladder:'—',
+    tier:0, ladder:'—', tierYear:9,
     co:null, tenure:0, jobs:[],
     salary:0, wealth:ri(8,30), equity:0, sideIncome:0,
     burn:12, mode:'balance', rest:0,
-    lastD:0, lastGrade:'—', badYears:0, noPromo:0,
-    traits:{}, six:0, safeCnt:0, boldOK:0, boldFail:0,
+    lastGrade:'—', badYears:0, noPromo:0,
+    traits:{}, six:0, safeCnt:0, boldFail:0,
     kolCnt:0, mentorCnt:0, teamCnt:0, healthFail:0, gambleOK:0,
     shortHops:0, hops:0, gapYears:0, burnouts:0,
     married:false, kids:0, spouse:'',
     awards:{}, score:0, hist:[], tl:[],
-    macro:MACROS[1], startAge:bg.age, done:false, endText:'', peakTier:0, peakSal:0
+    macro:MACROS[1], startAge:bg.age, done:false, peakTier:0, peakSal:0
   };
 }
+
+/* ---------- 存檔（只在年度交界存，最多損失一年） ---------- */
+const SAVE_KEY='yourator-career-sim-v1';
+function storeOK(){ try{ const k='__t'; localStorage.setItem(k,'1'); localStorage.removeItem(k); return true; }catch(e){ return false; } }
+const CAN_SAVE=storeOK();          /* artifact／無痕模式沒有 storage，靜默降級 */
+function saveGame(){
+  if(!CAN_SAVE||!S||S.done)return;
+  try{ localStorage.setItem(SAVE_KEY,JSON.stringify({v:1,ts:Date.now(),rng:seedState(),S:S})); }
+  catch(e){ /* 配額用完就當作沒有存檔 */ }
+}
+function loadSave(){
+  if(!CAN_SAVE)return null;
+  try{
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw)return null;
+    const d=JSON.parse(raw);
+    if(!d||d.v!==1||!d.S||d.S.done)return null;
+    if(!(d.S.track in TRACKS)||!(d.S.bg in BGS))return null;
+    return d;
+  }catch(e){ return null; }
+}
+function clearSave(){ if(CAN_SAVE)try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 
 const TK=()=>TRACKS[S.track];
 const TIER=()=>TIERS[S.tier];
@@ -1456,7 +1655,7 @@ function title(){
 }
 function rawOvr(){ let v=0; const w=TK().w; AB.forEach(k=>v+=S.ab[k]*w[k]); return v; }
 function ovr(){ let v=rawOvr(); if(S.traits.imposter)v-=3; return Math.round(v); }
-function dVal(){ return ovr()-TIER().avg; }
+function pVal(){ return ovr()-(TIER().pavg!=null?TIER().pavg:TIER().avg); }
 
 /* 成長成本（與 addAb 一致） */
 function abCost(k){
@@ -1486,24 +1685,31 @@ function bumpRandom(v,exclude){
 /* 薪資 */
 function coMult(){ return S.co?COT[S.co.type].sal:1; }
 function baseSalary(){
-  const t=TIER(), d=clamp(dVal(),-12,26);
-  let s=(t.base+d*t.kk)*coMult()*(0.94+S.macro.sal*.06);
-  if(S.bg==='TOP'&&S.age<=27)s*=1.10;
+  const t=TIER(), d=clamp(ovr()-t.avg,-10,24);
+  /* 景氣：原本 0.94+sal*0.06 只造成 1.5% 擺動，UI 卻寫 ×0.9~×1.15 */
+  let s=(t.base+d*t.kk)*coMult()*(0.55+S.macro.sal*0.45);
+  if(S.bg==='TOP'&&S.age<=27)s*=1.12;
   return Math.max(t.base*0.62,Math.round(s));
 }
-const fmtM=w=>{ w=Math.round(w); return w>=10000?(w/10000).toFixed(w>=100000?0:2).replace(/\.00$/,'')+' 億':w.toLocaleString(); };
-const money=w=>fmtM(w)+' 萬';
+/* 單位規則：數字與中文單位之間一律一個半形空格；億以下用萬，不疊單位 */
+const fmtM=w=>{ w=Math.round(w);
+  if(w<10000)return w.toLocaleString()+' 萬';
+  const y=Math.floor(w/100)/100;                       /* truncate，避免 9.9999 億 → 10 億 */
+  return (w>=100000?Math.floor(y):y).toFixed(w>=100000?0:2).replace(/\.00$/,'')+' 億';
+};
+const money=w=>fmtM(w);
 
-/* 心力（倦怠量表） */
+/* 倦怠值 */
 function burnCap(){ return S.traits.steel?150:100; }
 function burnAccrue(){
   const modeM=S.mode==='sprint'?1.55:S.mode==='chill'?0.55:1;
   const co=S.co?COT[S.co.type].burn:(S.stage==='FOUNDER'?1.45:S.stage==='FREE'?0.9:1);
-  let v=(5.5+S.tier*1.7)*modeM*co*(1.32-S.ab.grit/150);
+  let v=(5.5+S.tier*1.7)*modeM*co*(1.45-S.ab.grit/110);   /* 放大心理韌性的作用 */
   if(S.traits.burnout&&!S.traits.phoenix)v*=1.35;
   if(S.traits.academy&&S.age<30)v*=0.85;
   if(S.kids>0)v*=1.08;
-  const rec=S.mode==='chill'?11:S.mode==='balance'?5:0;
+  let rec=S.mode==='chill'?7:S.mode==='balance'?3:0;   /* chill 原本 11 > 累積上限，永遠淨回復 */
+  if(S.traits.steel)rec=Math.round(rec*0.4);           /* 鋼鐵神經：上限高，但回復慢——這是負向特質 */
   return Math.round(v-rec);
 }
 function addBurn(v){ S.burn=clamp(S.burn+v,0,burnCap()+40); }
@@ -1512,10 +1718,10 @@ function addBurn(v){ S.burn=clamp(S.burn+v,0,burnCap()+40); }
 function evOdds(base){
   let p=base;
   if(S.traits.prodigy||S.traits.late)p=Math.max(p,70);
-  if(S.traits.stuck)p-=8;
-  if(S.traits.freeloader)p-=10;
-  if(S.burn>=70)p-=8; else if(S.burn>=50)p-=4;
-  return clamp(p,15,92);
+  if(S.traits.stuck)p-=12;
+  if(S.traits.freeloader)p-=14;
+  if(S.burn>=70)p-=14; else if(S.burn>=50)p-=8;
+  return clamp(p,20,88);
 }
 
 /* =========================================================
@@ -1523,8 +1729,10 @@ function evOdds(base){
    ========================================================= */
 function board(){
   if(!S)return;
-  $('bd-name').innerHTML=`${S.name}<em>${S.year} · ${S.age}歲</em>`;
-  const lad=S.stage==='WORK'?`　${TIER().n}${S.ladder==='IC'?'（專業職）':S.ladder==='MGR'?'（管理職）':''}`:'';
+  const bn=$('bd-name'); bn.textContent=S.name;
+  const bnEm=document.createElement('em'); bnEm.textContent=`${S.year} · ${S.age} 歲`; bn.appendChild(bnEm);
+  const lv=S.ladder==='IC'?(TIER().icn||TIER().n):TIER().n;
+  const lad=S.stage==='WORK'?`　${lv}${S.ladder==='IC'?'（專業職）':S.ladder==='MGR'?'（管理職）':''}`:'';
   $('bd-role').textContent=title()+lad;
   const co=$('bd-co');
   if(S.co){ co.style.display='inline-flex';
@@ -1534,14 +1742,14 @@ function board(){
     co.querySelector('span').textContent=S.stage==='GAP'?'待業中':S.stage==='FOUNDER'?(S.founder?S.founder.name:'自己的公司'):S.stage==='FREE'?'自由接案':'—';
     co.querySelector('i').style.background='#93a0bd'; }
   $('bd-ovr').textContent=ovr();
-  $('bd-sal').textContent=S.salary?money(S.salary).replace(' 萬','萬'):'—';
+  $('bd-sal').textContent=S.salary?money(S.salary):'—';
   $('bd-sal').nextElementSibling.textContent=S.stage==='FREE'?'年收入':S.stage==='FOUNDER'?'創辦人年收':'年薪';
   const g=$('bd-grade'); g.textContent=S.lastGrade; g.className='';
   $('bd-grade').nextElementSibling.textContent=S.stage==='FREE'?'市場評價':S.stage==='FOUNDER'?'里程碑':'績效';
   $('bd-grade').parentElement.querySelector('b').style.color=
     ({S:'#d99318',A:'#12b8a6',B:'#006bff',C:'#667085',D:'#df5b70'})[S.lastGrade]||'#667085';
   const bp=Math.round(S.burn/burnCap()*100);
-  $('bd-burn').textContent=bp+'%';
+  $('bd-burn').textContent=(bp>100?'100+':bp)+'%';
   $('bd-burn').style.color=bp>=80?'#df5b70':bp>=55?'#d99318':'#172033';
   $('bd-burnbar').style.width=Math.min(100,bp)+'%';
   $('ft-seed').textContent=S.seed;
@@ -1558,8 +1766,8 @@ function renderAb(){
   }).join('');
   radar();
 }
-function radar(){
-  const el=$('radar'); if(!el)return;
+function radar(id){
+  const el=$(id||'radar'); if(!el)return;
   const cx=115,cy=98,rr=72,n=AB.length;
   const pt=(i,r)=>{ const a=-Math.PI/2+i*2*Math.PI/n; return [cx+Math.cos(a)*r,cy+Math.sin(a)*r]; };
   let g='';
@@ -1572,14 +1780,14 @@ function radar(){
   g+=`<defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#006bff"/><stop offset="1" stop-color="#12b8a6"/></linearGradient></defs>`;
   g+=`<polygon points="${abPts}" fill="url(#rg)" fill-opacity=".34" stroke="url(#rg)" stroke-width="2" stroke-linejoin="round"/>`;
   AB.forEach((k,i)=>{ const [x,y]=pt(i,rr+15);
-    g+=`<text x="${x.toFixed(1)}" y="${(y+3.5).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#667085" font-family="var(--sans)">${ABL[k].slice(0,2)}</text>`; });
+    g+=`<text x="${x.toFixed(1)}" y="${(y+3.5).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#5a6478">${ABL[k].slice(0,2)}</text>`; });
   el.innerHTML=g;
 }
 function renderTraits(){
-  const keys=Object.keys(S.traits).filter(k=>S.traits[k]!=='hidden');
+  const keys=Object.keys(S.traits);
   const box=$('tr-list'),pn=$('pn-tr'); if(!box)return;
   const live=keys.filter(k=>S.traits[k]);
-  const dead=keys.filter(k=>!S.traits[k]&&S.traits[k]===false&&S._hadTrait&&S._hadTrait[k]);
+  const dead=keys.filter(k=>S.traits[k]===false&&S._hadTrait&&S._hadTrait[k]);
   if(!live.length&&!dead.length){ pn.style.display='none'; return; }
   pn.style.display='block';
   const row=(k,gone)=>`<div class="trait-row${gone?' gone':''}"><span class="tag ${TR[k].tone}">${TR[k].n}</span><span class="d">${TR[k].fx}</span></div>`;
@@ -1613,16 +1821,19 @@ function divider(t){
   const blocks=log.querySelectorAll('.yr-block');
   if(blocks.length>=2)blocks[blocks.length-2].classList.add('collapsed');
   const b=document.createElement('div'); b.className='yr-block';
-  const h=document.createElement('div'); h.className='yr-head'; h.textContent=t;
+  const h=document.createElement('button'); h.type='button'; h.className='yr-head';
+  h.textContent=t; h.setAttribute('aria-expanded','true');
   const body=document.createElement('div'); body.className='yr-body';
-  h.onclick=()=>b.classList.toggle('collapsed');
+  h.onclick=()=>{ const c=b.classList.toggle('collapsed'); h.setAttribute('aria-expanded',String(!c)); };
   b.appendChild(h); b.appendChild(body); log.appendChild(b);
   _curYearBody=body;
   const all=log.querySelectorAll('.yr-block');
-  if(all.length>MAXYR)for(let i=0;i<all.length-MAXYR;i++)all[i].remove();
+  if(all.length>LOG_KEEP_YEARS)for(let i=0;i<all.length-LOG_KEEP_YEARS;i++)all[i].remove();
 }
+const SCROLL_B=(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)?'auto':'smooth';
 function scrollBottom(){
-  requestAnimationFrame(()=>{ window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); });
+  if(scrollBottom._q)return; scrollBottom._q=true;
+  requestAnimationFrame(()=>{ scrollBottom._q=false; window.scrollTo({top:document.body.scrollHeight,behavior:SCROLL_B}); });
 }
 function actClear(){ $('act').innerHTML=''; }
 function choose(t,opts){
@@ -1633,13 +1844,40 @@ function choose(t,opts){
     b.className='opt'+(o.main?' main':'')+(o.warn?' warn':'')+(o.gold?' gold':'');
     b.style.animationDelay=(i*55)+'ms';
     b.innerHTML=`<span class="shine"></span>${o.t}${o.pill?`<span class="pill">${o.pill}</span>`:''}${o.s?`<small>${o.s}</small>`:''}`;
-    b.onclick=()=>{ if(b.dataset.gone)return; b.dataset.gone=1; if(navigator.vibrate)navigator.vibrate(12); b.classList.add('confirmed'); actClear(); o.f(); };
+    b.onclick=()=>{
+      if(b.dataset.gone)return; b.dataset.gone=1;
+      if(navigator.vibrate)navigator.vibrate(12);
+      b.classList.add('confirmed');
+      try{ actClear(); o.f(); }
+      catch(err){ console.error(err); recover(err); }
+    };
     a.appendChild(b);
   });
   polishOrphans(a);
   scrollBottom();
 }
 function next(t,f){ choose('',[{t:t||'▸ 繼續',main:true,f}]); }
+
+/* 錯誤救援：任何一步拋錯時，至少讓玩家能繼續或重開，不要靜默鎖死 */
+function recover(err){
+  try{
+    card('bad','這一步沒有正常結算',
+      `遊戲遇到一個非預期的狀況。你可以跳過這一步繼續，或重新開始這一生。`+
+      `<div class="sub">${esc(err&&err.message||err)}</div>`);
+    choose('',[
+      {t:'▸ 跳過這一步繼續',main:true,f:()=>{ try{ nextStep(); }catch(e){ console.error(e); } }},
+      {t:'▸ 重新開始',warn:true,f:()=>{ location.href=location.pathname; }}
+    ]);
+  }catch(e){ console.error('recover failed',e); }
+}
+window.addEventListener('error',e=>{
+  if(S&&!S.done&&$('act')&&!$('act').children.length)recover(e.error||e.message);
+});
+window.addEventListener('unhandledrejection',e=>console.error('unhandled rejection',e.reason));
+/* 一局 400 多次點擊，誤觸重整的代價太大 */
+window.addEventListener('beforeunload',e=>{
+  if(S&&!S.done&&S.age>S.startAge){ e.preventDefault(); e.returnValue=''; return ''; }
+});
 
 /* 時間軸 */
 function tlPush(){ S.tl.push({y:S.year,age:S.age,note:''}); }
@@ -1651,9 +1889,11 @@ function renderTL(){
   const w=$('tl-wrap'), strip=$('bd-strip'); if(!w)return;
   const items=S.tl.slice(-40);
   w.innerHTML=items.map((e,i)=>`<div class="tl${i===items.length-1?' now':''}"><span class="dot"></span><div><b>${e.y}</b>${e.note||(e.age+' 歲')}</div></div>`).join('');
-  w.scrollTop=w.scrollHeight;
-  strip.innerHTML=items.slice(-14).map((e,i,ar)=>`<span class="chip${i===ar.length-1?' now':''}">${e.y}　${e.note||e.age+'歲'}</span>`).join('');
-  strip.scrollLeft=strip.scrollWidth;
+  strip.innerHTML=items.slice(-14).map((e,i,ar)=>`<span class="chip${i===ar.length-1?' now':''}">${e.y}　${e.note||e.age+' 歲'}</span>`).join('');
+  /* 不在寫入後立刻讀 scrollHeight/scrollWidth（layout thrashing）；合併到下一個 frame */
+  if(!renderTL._q){ renderTL._q=true;
+    requestAnimationFrame(()=>{ renderTL._q=false; w.scrollTop=w.scrollHeight; strip.scrollLeft=strip.scrollWidth; });
+  }
 }
 
 /* Modal */
@@ -1675,13 +1915,14 @@ function allocUI(dice,label,done){
       <div id="dice-tray">${dice.map((v,i)=>`<div class="die${i===idx?' on':''}${i<idx?' used':''}">${v}</div>`).join('')}</div>
       <div id="alloc-rows">${AB.map(k=>{
         const v=S.ab[k],p=S.pot[k],c=abCost(k),full=v>=100;
-        return `<div class="alloc-row${full?' full':''}" data-k="${k}">
+        return `<button type="button" class="alloc-row${full?' full':''}" data-k="${k}"
+            aria-label="投入 ${ABL[k]}，目前 ${v}，潛力 ${p}，成本 ${c} 點">
           <span class="nm">${ABL[k]}</span>
           <span class="track"><i style="width:${v}%"></i><u style="left:calc(${p}% - 1px)"></u></span>
-          <span class="vv"><b>${v}</b> ／${p}　<i style="font-style:normal">${c}pt</i></span></div>`;
+          <span class="vv"><b>${v}</b> ／${p}　<i style="font-style:normal">${c}pt</i></span></button>`;
       }).join('')}</div>`;
     wrap.querySelectorAll('.alloc-row').forEach(r=>{
-      r.onclick=()=>{
+      r.onclick=()=>{ try{
         const k=r.dataset.k;
         const g=addAb(k,cur);
         const ov=S.lastOver||0;
@@ -1690,7 +1931,7 @@ function allocUI(dice,label,done){
         card('', null, `<b class="hl">${cur}</b> 點投入 <b>${ABL[k]}</b>：${g>0?`<b class="up">+${g}</b> → ${S.ab[k]}`:'累積於蓄力槽（尚不足以提升一級）'}${ov>0?`（已達 100，溢出 ${ov} 點轉為<b class="up">當年表現加成</b>）`:''}`);
         board();
         if(idx>=dice.length){ a.innerHTML=''; done(); } else render();
-      };
+      }catch(err){ console.error(err); recover(err); } };
     });
   }
   render(); scrollBottom();
@@ -1740,33 +1981,38 @@ function phasePre(){
   rollMacro();
   applyDecline();
   if(S.rest>0){
-    S.rest--; S.skipMid=true;
-    card('bad','休養年',`身體與心理都拉了警報，這一年你退出了戰場。收入僅剩基本保障，訓練骰減為 <b>2</b> 顆。<div class="sub">「不是每一年都要往前。有些年，是為了讓後面的年還走得動。」</div>`);
+    S.rest--; S.skipMid=true; S.yearPenalty=true; S.mode='chill';
+    card('bad','休養年',`身體與心理都拉了警報，這一年你把工作縮到最小，考績與升遷都先放下。收入約為平常的 75%，自我投資骰減為 <b>2</b> 顆。`);
   }
   const goDice=()=>rollDice(()=>nextStep());
-  if(S.stage==='GAP')return jobSearch(()=>goDice());
+  if(S.rest>0||S.skipMid)return goDice();               /* 休養年不問節奏 */
   if(S.stage==='STUDY')return goDice();
-  if(S.stage==='FOUNDER')return goDice();
+  if(S.stage==='GAP')return jobSearch(()=>modeChoice(goDice));
+  if(S.stage==='FOUNDER')return modeChoice(goDice);      /* 創業期每年也要能調節奏 */
   retireOffer(()=>lifeBranch(()=>modeChoice(goDice)));
 }
 function applyDecline(){
   const a=S.age-(S.traits.disc?3:0);
   if(a<45)return;
   const heavy=a>=55;
-  const list=heavy?[['learn',-3],['exec',-2],['craft',-2]]:[['learn',-2],['exec',-1]];
+  /* 改成「市場怎麼看你」而不是「你退化了」：能力小幅調整，主要影響落在偏見修正上 */
+  const list=heavy?[['learn',-2],['exec',-1]]:[['learn',-1]];
   const txt=[];
   list.forEach(([k,v])=>{ addAb(k,v); txt.push(`${ABL[k]} <b class="dn">${v}</b>`); });
+  S.ageBias=heavy?0.62:0.78;
   let up='';
-  if(S.tier>=3&&S.ab.net<100){ addAb('net',1); up=`　但 ${ABL.net} <b class="up">+1</b>——年紀換來的東西，也不是沒有。`; }
-  card('bad',heavy?'體力的第二道坎':'反應速度開始跟不上',
-    `${heavy?'熬夜的代價變得具體，新東西學起來比從前吃力。':'你發現自己需要更長的時間，才能吸收一個新框架。'}${txt.join('、')}。${up}${S.traits.disc?'<div class="sub">自律狂：整條衰退曲線延後三年。</div>':''}`);
+  const gain=heavy?2:1;
+  if(S.ab.net<100){ addAb('net',gain); up=`　${ABL.net} <b class="up">+${gain}</b>。`; }
+  card('bad',heavy?'第二次被年齡標記':'市場開始用年齡看你',
+    `${heavy?'你投出去的履歷，回覆率又掉了一半。同一份經歷，這一年開始被用不同的標準檢視。':'你和三年前投一樣的職位，回覆率明顯變低。能力沒有變，看的人變了。'}${txt.join('、')}${up}`+
+    `<div class="sub">徵才與升遷的偏見修正 ×${heavy?0.62:0.78}${S.traits.disc?'　·　自律狂：整條曲線延後三年':''}</div>`);
 }
 function retireOffer(cb){
   if(S.stage!=='WORK'&&S.stage!=='FREE')return cb();
-  const fi=S.wealth>=2200;
+  const fi=(S.wealth+S.equity)>=2200;
   if(S.age<48&&!(fi&&S.age>=42))return cb();
   const opts=[{t:S.stage==='FREE'?'維持現在的案量':'再戰一年',main:true,s:S.stage==='FREE'?'自由還在，暫時不急著收山':'還沒到停下來的時候',f:cb}];
-  if(fi)opts.push({t:'提前退休',gold:true,s:`資產 ${money(S.wealth)}，被動收入足以覆蓋生活`,
+  if(fi)opts.push({t:'提前退休',gold:true,s:`資產 ${money(S.wealth+S.equity)}，被動收入足以覆蓋生活`,
     f:()=>endGame(`${S.age} 歲那年，你算完最後一次資產表，決定把時間買回來。`)});
   if(S.stage==='WORK'&&S.age>=55)opts.push({t:'轉任顧問／講師',s:'離開全職，把經驗換成另一種收入',
     f:()=>{ leaveJob('consulting'); S.stage='FREE'; card('good','轉身',`你交出了名片上的頭銜，改成一週去兩間公司、講四場課。<div class="sub">收入會少一些，但行事曆終於是自己的。</div>`); cb(); }});
@@ -1776,25 +2022,25 @@ function retireOffer(cb){
 }
 function lifeBranch(cb){
   if(S.stage!=='WORK')return cb();
-  if(S.age<28||S.age>52||!chance(16))return cb();
+  if(S.age<26||S.age>52||!chance(24))return cb();
   const opts=[{t:'維持現在的路',main:true,s:'把手上的事做完，比較實在',f:cb}];
   if(S.ab.net>=48&&S.age<=48)opts.push({t:'加入朋友的創業團隊',gold:true,
     s:'薪水砍半、股份給你，成敗自負',f:()=>startFounder(cb)});
   if(S.ab.craft>=52&&S.ab.net>=45)opts.push({t:'離職接案，自己開工作室',
     s:'收入隨能力浮動，時間自己排',f:()=>{ leaveJob('freelance'); S.stage='FREE';
       card('info','自由工作者',`你把最後一天的東西收進紙箱，走出大樓時外面在下雨，但你笑得很開。`); tlNote('轉為自由接案',3); board(); cb(); }});
-  if(S.age<=42)opts.push({t:'留職停薪去進修',s:'一年不賺錢，換一次認知升級',
+  if(S.age<=42)opts.push({t:'留職停薪去進修',s:'一年沒有收入，換一次重新學習的機會',
     f:()=>{ S.stage='STUDY'; S.studyBack={co:S.co,tier:S.tier}; S.co=null;
-      card('info','進修年',`你把一年的時間押在課堂與圖書館。<div class="sub">這一年沒有收入，但訓練骰會多 3 顆，而且點數更飽滿。</div>`); tlNote('進修年',3); cb(); }});
+      card('info','進修年',`你把一年的時間押在課堂與圖書館。<div class="sub">這一年沒有收入，但自我投資骰會多 3 顆，而且點數更飽滿。</div>`); tlNote('進修年',3); cb(); }});
   choose('人生的岔路口',opts);
 }
 function modeChoice(cb){
   if(S.stage!=='WORK'&&S.stage!=='FREE'&&S.stage!=='FOUNDER')return cb();
   const st=S.burn>=80?'快燒完了':S.burn>=55?'有點疲乏':S.burn>=30?'還撐得住':'狀態飽滿';
-  choose(`本年工作節奏（目前心力：${st}）`,[
-    {t:'全力衝刺',warn:true,s:'表現與升遷機會最好｜心力耗損 ×1.55',f:()=>{S.mode='sprint';cb();}},
-    {t:'穩定輸出',main:true,s:'標準節奏｜心力小幅回復',f:()=>{S.mode='balance';cb();}},
-    {t:'保留餘裕',s:'表現保守｜心力明顯回復',f:()=>{S.mode='chill';cb();}}
+  choose(`本年工作節奏（目前倦怠：${st}）`,[
+    {t:'全力衝刺',warn:true,s:'升遷機會最好，但倦怠越高、加分越少｜耗損 ×1.55',f:()=>{S.mode='sprint';cb();}},
+    {t:'穩定輸出',main:true,s:'標準節奏｜倦怠小幅回復',f:()=>{S.mode='balance';cb();}},
+    {t:'保留餘裕',s:'表現保守｜倦怠明顯回復',f:()=>{S.mode='chill';cb();}}
   ]);
 }
 function rollDice(done){
@@ -1831,25 +2077,27 @@ function phaseMid(){
   board();
   if(S.skipMid){ S.skipMid=false; return nextStep(); }
   lifeEvent(()=>drawEvents(S.stage==='WORK'?3:2,()=>{
-    next('▸ 年中心力盤點',()=>burnCheck(()=>next('▸ 查看本年成果',()=>nextStep())));
+    next('▸ 年中倦怠盤點',()=>burnCheck(()=>next('▸ 查看本年成果',()=>nextStep())));
   }));
 }
-const TEAM_EV=['帶新人','第一次帶團隊','擔任內部講師','多元共融工作坊'];
+const TEAM_EV=['帶新人','帶起一個小團隊','擔任內部講師','多元共融工作坊'];
 function drawEvents(n,cb){
   if(n<=0)return cb();
   const trackOK=e=>!e.tr||e.tr.includes(S.track);
   let pool;
   if(S.stage==='FREE') pool=EVENTS.filter(e=>trackOK(e)&&FREE_EVENT_TITLES.has(e.t)).concat(FREE_EVENTS.filter(trackOK));
   else if(S.stage==='FOUNDER') pool=EVENTS.filter(e=>trackOK(e)&&FOUNDER_EVENT_TITLES.has(e.t)).concat(FOUNDER_EVENTS.filter(trackOK));
+  else if(S.stage==='GAP'||S.stage==='STUDY')
+    pool=EVENTS.filter(e=>trackOK(e)&&GAP_EVENT_TITLES.has(e.t));    /* 既沒有公司、也沒有客戶 */
   else pool=EVENTS.filter(trackOK);
   const e=pick(pool);
   const base=evOdds(56);
   const run=(kind)=>{
-    const p=kind==='safe'?base+20:kind==='bold'?base-15:base;
+    const p=kind==='safe'?base+8:kind==='bold'?base-4:base;
     const ok=chance(clamp(p,10,95));
     const f=kind==='safe'?0.5:kind==='bold'?1.5:1;
     if(kind==='safe')S.safeCnt++;
-    if(kind==='bold'){ if(ok)S.boldOK++; else S.boldFail++; }
+    if(kind==='bold'&&!ok)S.boldFail++;
     const eff=ok?e.g:e.b, lines=[];
     eff.forEach(([k,v])=>{
       const dv=v>0?Math.max(1,Math.round(v*f)):Math.min(-1,Math.round(v*f));
@@ -1865,22 +2113,23 @@ function drawEvents(n,cb){
       `${ok?e.gt:e.bt}<div class="sub">${lines.join('　')}</div>`);
     checkEventTraits();
     board();
-    setTimeout(()=>drawEvents(n-1,cb),40);
+    setTimeout(()=>{ if(!S.done)drawEvents(n-1,cb); },40);
   };
-  card('info',e.t,e.s);
+  const desc=(S.stage==='FREE'&&e.sf)||((S.stage==='GAP'||S.stage==='STUDY')&&(e.sg||e.sf))||(S.stage==='FOUNDER'&&e.so)||e.s;
+  card('info',e.t,desc);
   choose('',[
-    {t:'穩健應對',s:`成功率 ${clamp(base+20,10,95)}%｜效果減半，風險最低`,f:()=>run('safe')},
+    {t:'穩健應對',s:`成功率 ${clamp(base+8,10,95)}%｜效果減半，好壞都收斂`,f:()=>run('safe')},
     {t:'照常執行',main:true,s:`成功率 ${base}%｜標準效果`,f:()=>run('normal')},
-    {t:'全力一搏',warn:true,s:`成功率 ${clamp(base-15,10,95)}%｜效果 ×1.5`,f:()=>run('bold')}
+    {t:'全力一搏',warn:true,s:`成功率 ${clamp(base-4,10,95)}%｜效果 ×1.5，好壞都放大`,f:()=>run('bold')}
   ]);
 }
 function checkEventTraits(){
   if(S.kolCnt>=4&&!S.traits.kol)traitCard('kol','你講的東西開始被整理成筆記轉貼。業界提到這個題目，會先想到你的名字。');
-  if(S.mentorCnt>=3&&!S.traits.mentorMagnet)traitCard('mentorMagnet','你總是能遇到願意拉你一把的人——因為你每次都認真聽，也認真回。');
-  if(S.teamCnt>=8&&!S.traits.teamHeart&&!S.traits.lone)traitCard('teamHeart','跟你共事過的人，後來都變得更好。這件事在圈子裡是傳得開的。');
+  if(S.mentorCnt>=4&&!S.traits.mentorMagnet)traitCard('mentorMagnet','你總是能遇到願意拉你一把的人。因為你每次都認真聽，也認真回。');
+  if(S.teamCnt>=12&&!S.traits.teamHeart&&!S.traits.lone)traitCard('teamHeart','跟你共事過的人，後來都變得更好。圈子裡傳得開。');
   if(S.boldFail>=14&&!S.traits.lone)traitCard('lone','你習慣自己扛、自己衝，也習慣了失敗自己收。久了，沒有人再主動跟你組隊。');
-  if(S.safeCnt>=15&&S.age<34&&S.healthFail<3&&!S.traits.disc)
-    traitCard('disc','你不賭。你只是每天固定睡七小時、固定運動、固定把事情做完。十年後這件事開始有複利。');
+  if(S.safeCnt>=15&&S.age<34&&S.healthFail===0&&S.boldFail<=2&&!S.traits.disc)
+    traitCard('disc','你不賭。你每天固定睡七小時、固定運動、固定把事情做完。十年後，你的年資和你的能力值第一次對得上。');
 }
 
 /* ---------- 生活事件 ---------- */
@@ -1898,32 +2147,39 @@ function lifeEvent(cb){
       else{addAb(k,v);lines.push(`${ABL[k]} <b class="${v>0?'up':'dn'}">${v>0?'+':''}${v}</b>`);}
     });
     const bv=ok?e.burnG:e.burnB; addBurn(bv||0);
-    if(bv)lines.push(`心力 <b class="${bv<0?'up':'dn'}">${bv<0?'':'+'}${bv}</b>`);
+    if(bv)lines.push(`倦怠 <b class="${bv<0?'up':'dn'}">${bv<0?'':'+'}${bv}</b>`);
     if(ok&&e.tag==='marry'){ S.married=true; S.spouse=pick(['小葵','阿哲','Ray','宜庭','子謙','Nina']); }
     if(ok&&e.tag==='kid'){ S.kids++; }
     if(!ok&&e.tag==='health')S.healthFail++;
     if(ok&&e.money){ const inc=Math.round((S.ab.net+S.ab.craft)*(S.traits.polymath?0.55:0.4)); S.sideIncome+=inc;
       lines.push(`副業年收 <b class="up">+${inc} 萬</b>`);
-      if(S.sideIncome>=120&&!S.traits.polymath)traitCard('polymath','你的收入不再只有一條線。這件事帶來的不只是錢，是選擇的自由。'); }
+      if(S.sideIncome>=120&&!S.traits.polymath)traitCard('polymath','這個月你第一次靠副業繳完房租，正職那筆還沒進帳。'); }
     card(ok?'good':'bad','生活 · '+e.t,`${ok?e.gt:e.bt}<div class="sub">${lines.join('　')}</div>`);
     board(); cb();
   };
   card('info','生活 · '+e.t,e.s);
   choose('',[
     {t:'認真面對',main:true,s:`成功率 ${p}%`,f:()=>apply(chance(p))},
-    {t:'先放著吧',s:'工作已經夠多了',f:()=>{ addBurn(3); card('','生活 · '+e.t,`你把它放進「之後再說」的清單，那份清單已經有點長了。<div class="sub">心力 <b class="dn">+3</b></div>`); board(); cb(); }}
+    {t:'先放著吧',s:'工作已經夠多了',f:()=>{ addBurn(3); card('','生活 · '+e.t,`你把它放進「之後再說」的清單，那份清單已經有點長了。<div class="sub">倦怠 <b class="dn">+3</b></div>`); board(); cb(); }}
   ]);
 }
 
-/* ---------- 心力盤點 ---------- */
+/* ---------- 倦怠盤點 ---------- */
 function burnCheck(cb){
   const acc=burnAccrue();
   addBurn(acc);
   const pct=Math.round(S.burn/burnCap()*100);
-  card(acc>0?(pct>=70?'bad':''):'good','心力盤點',
-    `本年節奏「${({sprint:'全力衝刺',balance:'穩定輸出',chill:'保留餘裕'})[S.mode]}」，心力 <b class="${acc>0?'dn':'up'}">${acc>0?'+':''}${acc}</b>　→　目前 <b class="${pct>=70?'dn':pct>=45?'hl':'up'}">${pct}%</b>${S.traits.steel?'（鋼鐵神經：上限 150）':''}`);
+  card(acc>0?(pct>=70?'bad':''):'good','倦怠盤點',
+    `本年節奏「${({sprint:'全力衝刺',balance:'穩定輸出',chill:'保留餘裕'})[S.mode]}」，倦怠 <b class="${acc>0?'dn':'up'}">${acc>0?'+':''}${acc}</b>　→　目前 <b class="${pct>=70?'dn':pct>=45?'hl':'up'}">${pct}%</b>${S.traits.steel?'（鋼鐵神經：上限 150，但回復較慢）':''}`);
   board();
   if(S.burn<burnCap())return cb();
+  if(S.stage==='GAP'||S.stage==='STUDY'){
+    /* 沒有工作可請假、也沒有工作可辭，不該跳出在職版選項 */
+    S.burn=Math.round(burnCap()*0.5); addAb('grit',1); S.gambleOK=0;
+    card('good','空檔裡的修復',`沒有交接、沒有會議的日子，你連續兩週在同一個時間醒來。`+
+      `<div class="sub">倦怠降至 ${Math.round(S.burn/burnCap()*100)}%　·　${ABL.grit} <b class="up">+1</b></div>`);
+    board(); return cb();
+  }
   burnCrisis(cb);
 }
 function burnCrisis(cb){
@@ -1933,49 +2189,49 @@ function burnCrisis(cb){
     ?'你發現自己開始害怕信箱通知。案子明明是自己接的，行事曆卻比上班時更不像自己的。'
     :isFounder
       ?'你已經連續幾個月醒來就在算跑道、營收和人。公司還在往前，但你本人快沒有電了。'
-      :'你已經連續幾個月在早晨睜眼時感覺不到任何動力。工作內容看得懂，卻很難真的推進。';
-  card('bad','職業倦怠警報',`${crisisText}<div class="sub">這不是多撐兩個晚上就能解決的問題，你需要調整工作方式。</div>`);
+      :'你已經連續幾個月睜眼後在床上多躺四十分鐘。看得懂的字看不進去，會議裡的聲音像隔了一層水。';
+  card('bad','職業倦怠警報',`${crisisText}<div class="sub">多撐兩個晚上不會解決這件事，你需要調整工作方式。</div>`);
 
   if(isFounder){
     return choose('這一次，你打算怎麼處理？',[
       {t:'把營運節奏降下來',main:true,s:'少追一點成長，先把自己拉回來',
-        f:()=>{ S.burn=18; addAb('grit',2); card('good','降載',`你砍掉兩個非必要專案，重新分工，也第一次把「創辦人不能倒」當成營運條件。<div class="sub">心力降至 18　·　${ABL.grit} <b class="up">+2</b></div>`); board(); cb(); }},
-      {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜失敗會強制休養`,f:()=>burnGamble(p,cb)},
+        f:()=>{ S.burn=18; addAb('grit',2); card('good','降載',`你砍掉兩個非必要專案，重新分工，也第一次把「創辦人不能倒」當成營運條件。<div class="sub">倦怠降至 18　·　${ABL.grit} <b class="up">+2</b></div>`); board(); cb(); }},
+      {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜即使成功也會留下代價；失敗將導致重度過勞`,f:()=>burnGamble(p,cb)},
       {t:'把更多責任交出去',s:'短期失去一點控制，換回可持續的節奏',
-        f:()=>{ addBurn(-32); addAb('lead',2); card('good','開始授權',`你把幾個原本只有自己能決定的事情交給團隊。公司沒有因此失控。<div class="sub">心力 <b class="up">−32</b>　·　${ABL.lead} <b class="up">+2</b></div>`); board(); cb(); }}
+        f:()=>{ addBurn(-32); addAb('lead',2); card('good','開始授權',`你把幾個原本只有自己能決定的事情交給團隊。公司沒有因此失控。<div class="sub">倦怠 <b class="up">−32</b>　·　${ABL.lead} <b class="up">+2</b></div>`); board(); cb(); }}
     ]);
   }
 
   if(isFree){
     return choose('這一次，你打算怎麼處理？',[
-      {t:'停接新案一段時間',main:true,s:'當年收入約 ×0.6，但心力歸零',
-        f:()=>{ S.burn=0; S.yearPenalty=true; addAb('grit',3); card('good','主動留白',`你把新案全部排到三個月後，第一次沒有對任何客戶說「我可以趕」。<div class="sub">心力歸零　·　${ABL.grit} <b class="up">+3</b>　·　當年收入 ×0.6</div>`); board(); cb(); }},
-      {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜失敗會強制休養`,f:()=>burnGamble(p,cb)},
+      {t:'停接新案一段時間',main:true,s:'當年收入約 ×0.6，但倦怠歸零',
+        f:()=>{ S.burn=0; S.yearPenalty=true; addAb('grit',3); card('good','主動留白',`你把新案全部排到三個月後，第一次沒有對任何客戶說「我可以趕」。<div class="sub">倦怠歸零　·　${ABL.grit} <b class="up">+3</b>　·　當年收入 ×0.6</div>`); board(); cb(); }},
+      {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜即使成功也會留下代價；失敗將導致重度過勞`,f:()=>burnGamble(p,cb)},
       {t:'結束接案，先休息',s:'結完今年的案子後進入待業期',
         f:()=>{ S.freeStop=true; S.burn=20; card('info','暫停接案',`你通知固定合作的客戶：手上的案子會做完，但暫時不接新的。這次你先替自己保留下一季。`); board(); cb(); }}
     ]);
   }
 
   choose('這一次，你打算怎麼處理？',[
-    {t:'請長假／留職停薪',main:true,s:'當年收入 ×0.6、表現下滑，但心力歸零',
+    {t:'申請留職停薪三個月',main:true,s:'期間無薪（當年收入 ×0.75）、考績受影響，但倦怠歸零',
       f:()=>{ S.burn=0; S.yearPenalty=true; addAb('grit',3);
-        card('good','按下暫停鍵',`你把假請完，關掉通知，做了三個月完全與工作無關的事。回來那天你發現，世界並沒有因為你休息而崩塌。<div class="sub">心力歸零　·　${ABL.grit} <b class="up">+3</b>　·　當年收入 ×0.6</div>`);
+        card('good','按下暫停鍵',`你把交接寫完，關掉通知，做了三個月完全與工作無關的事。回來那天，你的信箱有 412 封未讀，其中沒有一封需要你昨天處理。<div class="sub">倦怠歸零　·　${ABL.grit} <b class="up">+3</b>　·　當年收入 ×0.75</div>`);
         S.gambleOK=0; board(); cb(); }},
-    {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜失敗會強制休養`,f:()=>burnGamble(p,cb)},
+    {t:'再撐一下就過去了',warn:true,s:`成功率 ${p}%｜即使成功也會留下代價；失敗將導致重度過勞`,f:()=>burnGamble(p,cb)},
     {t:'直接離職，先休息',s:'結完今年後進入待業期，重新開機',
       f:()=>{ S.quitNow=true; S.burn=20;
-        card('info','遞出辭呈',`你沒有找好下一份工作。信件送出的那一刻，你想的不是後悔，是終於可以好好睡一覺。`);
+        card('info','遞出辭呈',`你沒有找好下一份工作。信件送出的那一刻，你只想到今晚可以不設鬧鐘。`);
         board(); cb(); }}
   ]);
 }
 function burnGamble(p,cb){
-  if(chance(p)){ addBurn(-38); addAb('grit',2); S.gambleOK++;
-    card('good','撐過去了',`你把節奏調慢了一點，總算把這一段收完。<div class="sub">心力 <b class="up">−38</b>　·　${ABL.grit} <b class="up">+2</b></div>`);
-    if(S.gambleOK>=2&&!S.traits.steel)traitCard('steel','你發現自己的底盤跟別人不一樣——同樣的壓力，你恢復得比誰都快。');
+  if(chance(p)){ addBurn(-30); addAb('grit',1); S.gambleOK++;
+    card('','撐過去了',`你靠壓縮睡眠、推掉所有跟工作無關的事，把這一段做完了。三個月後，同樣的工作量開始讓你更快到極限。<div class="sub">倦怠 <b class="up">−30</b>　·　${ABL.grit} <b class="up">+1</b></div>`);
+    if(S.gambleOK>=2&&!S.traits.steel)traitCard('steel','「你神經真的很強。」這句話你今年聽到三次。實際發生的事是，你的倦怠警報比別人晚亮，退得也比別人慢。');
   }else{
     S.gambleOK=0; S.burnouts++; S.rest=1; S.burn=32;
     AB.forEach(k=>addAb(k,-4));
-    card('bad','重度過勞',`你被迫把工作按下暫停。接下來一年必須先恢復，再談成長。<div class="sub">明年強制休養　·　全能力 <b class="dn">−4</b></div>`);
+    card('bad','重度過勞',`某個週二早上，你在捷運站坐了四十分鐘，沒有辦法走進公司。醫生開了診斷書，上面寫著你早就知道的事。<div class="sub">明年強制休養　·　全能力 <b class="dn">−4</b></div>`);
     if(S.burnouts>=2&&S.age<45&&!S.traits.burnout)
       traitCard('burnout','身體記住了兩次崩潰。從此同樣的工作量，對你的消耗就是比別人大。');
   }
@@ -1994,9 +2250,14 @@ function phaseEnd(){
 function gradeOf(perf){ return perf>=8?'S':perf>=3?'A':perf>=-2.5?'B':perf>=-7.5?'C':'D'; }
 function gradeHTML(g){ return `<span class="grade g-${g}">${g}</span>`; }
 function perfCalc(){
-  let p=dVal()+N0(3.1);
-  p+=S.mode==='sprint'?2.2:S.mode==='chill'?-2.2:0;
-  p-=(S.burn/burnCap())*5.5;
+  /* pVal 取代 dVal，並給 +2 的基準線：站在職級期待值上應該拿 B，不是 C */
+  let p=pVal()*0.85+0.4+N0(3.1);
+  /* 衝刺的加分隨倦怠遞減——燒到底的人衝不出成績 */
+  const bp=S.burn/burnCap();
+  p+=S.mode==='sprint'?2.4*(1-bp*0.8):S.mode==='chill'?-1.6:0;
+  p-=bp*5.5;
+  p+=(S.ab.grit-40)/25;                      /* 讓心理韌性值得投資 */
+  p+=Math.max(0,2-(S.tierYear||0))*1.1;      /* 剛升上去的兩年有適應期 */
   p+=(S.pendBonus||0)*0.7; S.pendBonus=0;
   if(S.yearPenalty){ p-=4.5; }
   if(S.traits.teamHeart&&S.ladder==='MGR')p+=1;
@@ -2005,52 +2266,67 @@ function perfCalc(){
 }
 function tierImpact(){ return [30,48,78,120,180,270,390][S.tier]; }
 function settleSalary(grade){
-  const raise={S:1.13,A:1.08,B:1.035,C:1.0,D:.985}[grade]*(0.97+S.macro.sal*0.03);
+  const raise={S:1.13,A:1.08,B:1.035,C:1.0,D:.985}[grade]*(0.7+S.macro.sal*0.3);
   const target=baseSalary();
   let ns=Math.round(S.salary*raise);
   if(ns<target*0.84)ns=Math.round(target*0.9);
   if(S.traits.veteran)ns=Math.max(ns,Math.round(target*1.2));
-  return ns;
+  /* 上界：留在同一個職級不該無限複利，想再往上要靠升遷或跳槽 */
+  return Math.min(ns,Math.round(target*1.32));
 }
-function saveRate(){ return clamp(0.32-S.kids*0.05-(S.age<26?0.08:0),0.06,0.4); }
-function bankIncome(inc,label){
+function saveRate(){ return clamp(0.32-S.kids*0.05-(S.age<26?0.08:0),0.15,0.34); }
+function bankIncome(inc){
   S.totalIncome=(S.totalIncome||0)+inc;
   S.wealth+=Math.round(inc*saveRate());
   S.peakSal=Math.max(S.peakSal||0,inc);
 }
 function workYear(){
   const perf=perfCalc(), g=gradeOf(perf);
-  S.lastD=perf; S.lastGrade=g;
+  S.lastGrade=g;
   const projects=clamp(Math.round(1+S.ab.exec/22+perf/5+N0(1)),0,14);
   const ot=Math.round((S.mode==='sprint'?520:S.mode==='balance'?300:150)*(0.7+S.ab.exec/160)*(S.co?COT[S.co.type].burn:1));
-  let impact=Math.round(tierImpact()*(1+perf/17)*(S.yearPenalty?0.6:1));
+  let impact=Math.round(tierImpact()*(1+perf/17)*(S.yearPenalty?0.75:1));
   impact=Math.max(6,impact);
   S.score+=impact;
   const prevSal=S.salary;
   S.salary=settleSalary(g);
-  let inc=S.salary*(S.yearPenalty?0.6:1)+S.sideIncome;
+  /* 加班費：以年薪回推時薪、加權 1.5 倍。主管職（tier≥3）多以 84-1 排除，
+     且法定上限為每月 46 小時，超過的部分公司本來就不該讓它發生 */
+  const otPaid=S.tier<=2?Math.min(ot,46*12):0;
+  const otPay=Math.round(S.salary/2000*1.5*otPaid);
+  let inc=S.salary*(S.yearPenalty?0.75:1)+S.sideIncome+otPay;
   bankIncome(inc);
   const eq=S.co?COT[S.co.type].eq:0;
   if(eq>0)S.equity+=Math.round(S.salary*0.12*eq);
+  /* 選擇權兌現：原本 AWARDS.ipo 定義了卻永遠拿不到 */
+  if(S.equity>=900&&!S.awards.ipo&&S.co&&eq>0&&chance(7)){
+    const cash=Math.round(S.equity*0.6); S.equity-=cash; S.wealth+=cash;
+    S.awards.ipo=1; S.score+=AWARDS.ipo.p;
+    card('gold','選擇權兌現',`公司開了一次員工股票的收購窗口。你把六成的持股換成現金，剩下的繼續放。`+
+      `<div class="sub">入袋 <b class="hl">${money(cash)}</b>　·　剩餘股權 ${money(S.equity)}</div>`);
+  }
   S.hist.push({y:S.year,age:S.age,co:S.co?S.co.name:'—',t:title(),g,sal:S.salary,impact});
   tlNote(`${g} 級考績${S.co?'　'+S.co.name:''}`,1);
   card(g==='S'||g==='A'?'good':g==='D'?'bad':'','年度績效考核',
     `${
       g==='S'?'年度校準會議上，你的名字被放在最前面。主管說：「這一年，這個位置換成別人做不出來。」':
-      g==='A'?'穩穩超出期待。該扛的扛了，該推的也推動了。':
-      g==='B'?'達標。沒有驚喜，也沒有意外——大部分的職涯，本來就是這樣長的。':
+      g==='A'?'穩穩超出期待。年中那兩件卡住的事，最後是你去把它解掉的。':
+      g==='B'?'達標。年初排的事，年底都結掉了，沒有多也沒有少。':
       g==='C'?'低於期待。回饋裡出現了「希望看到更多主動性」這種句子。':
-      '這一年沒有做出成果。績效面談的氣氛，你走出會議室很久都還記得。'}
+      '這一年沒有做出成果。績效面談排在下午四點，主管把筆記本闔起來的時候還不到四點半。'}
      <div class="stat-row">
       <div class="stat"><b>${gradeHTML(g)}</b><span>考績</span></div>
       <div class="stat"><b>${projects}</b><span>主導專案</span></div>
       <div class="stat"><b>${impact}</b><span>影響力分</span></div>
-      <div class="stat"><b>${ot.toLocaleString()}</b><span>加班時數</span></div>
-      <div class="stat"><b>${money(S.salary).replace(' 萬','萬')}</b><span>年薪</span></div>
+      <div class="stat"><b${Math.round(ot/12)>46?' style="color:var(--rose)"':''}>${Math.round(ot/12)}<i style="font-style:normal;font-weight:400;opacity:.5"> ／46</i></b><span>月均加班</span></div>
+      <div class="stat"><b>${money(S.salary)}</b><span>年薪</span></div>
      </div>
-     <div class="sub">薪資 ${prevSal?`${money(prevSal)} → `:''}<b class="${S.salary>=prevSal?'up':'dn'}">${money(S.salary)}</b>${S.yearPenalty?'（長假期間收入 ×0.6）':''}　·　累積資產 <b class="hl">${money(S.wealth+S.equity)}</b>`);
+     ${Math.round(ot/12)>46?`<div class="sub" style="color:var(--rose)">本年月均加班 ${Math.round(ot/12)} 小時，已超過《勞基法》第 32 條的每月 46 小時上限。這是排工方式的問題，不是你的績效。</div>`:''}
+     <div class="sub">${S.tier<=2?`加班費（1.5 倍加權、計入 46 小時上限）約 <b class="hl">${money(otPay)}</b>`:'主管職不另計加班費（多以《勞基法》84-1 約定）'}　·　薪資 ${prevSal?`${money(prevSal)} → `:''}<b class="${S.salary>=prevSal?'up':'dn'}">${money(S.salary)}</b>${S.yearPenalty?'（留職停薪期間收入 ×0.75）':''}　·　累積資產 <b class="hl">${money(S.wealth+S.equity)}</b>`);
   S.yearPenalty=false;
   if(g==='D')S.badYears++; else if(g==='C')S.badYears+=0.5; else S.badYears=0;
+  S.goodStreak=(g==='C'||g==='D')?0:(S.goodStreak||0)+1;
+  S.chillStreak=(S.mode==='chill'||S.mode==='balance')&&S.burn<burnCap()*0.5?(S.chillStreak||0)+1:0;
   awardsCheck(g,perf,projects);
   board();
   const q=[];
@@ -2067,33 +2343,41 @@ function awardsCheck(g,perf,projects){
   const got=[];
   const give=k=>{ S.awards[k]=(S.awards[k]||0)+1; S.score+=AWARDS[k].p; got.push(AWARDS[k].n); };
   const yrs=S.age-S.startAge;
-  if(g==='S'&&yrs<=2&&!S.awards.rookie&&chance(70))give('rookie');
-  if((g==='S'||g==='A')&&chance(g==='S'?55:28))give('star');
+  if((g==='S'||g==='A')&&yrs<=2&&!S.awards.rookie&&chance(55))give('rookie');
+  if((g==='S'||g==='A')&&chance(g==='S'?38:11))give('star');
   if(g==='S'&&chance(38+S.tier*3))give('mvp');
   if(projects>=7&&(g==='S'||g==='A')&&chance(45))give('proj');
-  if(S.ab.net>=62&&(g==='S'||g==='A')&&chance(18+S.ab.net/6))give('talk');
-  if(S.ab.net>=72&&g==='S'&&S.tier>=3&&chance(16))give('ind');
-  if(S.ab.net>=68&&chance(10))give('media');
+  if(visibility()>=66&&(g==='S'||g==='A')&&chance(8+visibility()/14))give('talk');
+  if(visibility()>=76&&(g==='S'||g==='A')&&S.tier>=4&&chance(7))give('ind');
+  if(visibility()>=72&&(g==='S'||g==='A')&&chance(6))give('media');
   if(!got.length)return;
-  addAb('net',got.length);
-  card('gold','年度榮譽',`${got.map(x=>`<b class="hl">${x}</b>`).join('、')}<div class="sub">${ABL.net} <b class="up">+${got.length}</b>　·　這些會一直留在你的資歷上。</div>`);
+  /* 只在還沒撞到潛力天花板時給，避免 net 被免費推過上限後讓玩家的投資變成浪費 */
+  if(S.ab.net<S.pot.net)addAb('net',got.length);
+  card('gold','年度榮譽',`${got.map(x=>`<b class="hl">${x}</b>`).join('、')}<div class="sub">${ABL.net} <b class="up">+${got.length}</b></div>`);
   if(S.traits.burnout&&!S.traits.phoenix&&(S.awards.mvp||S.awards.ind)){
     S.traits.burnout=false;
     traitCard('phoenix','所有人都以為你回不來了。你花了兩年重新學會怎麼工作，然後站上了自己從沒到過的位置。');
     for(let i=0;i<8;i++)bumpRandom(1);
   }
-  if(S.traits.imposter&&(S.awards.mvp||S.awards.star))removeTrait('imposter','拿到這座獎的那天，你終於敢承認：這不是運氣。');
+  if(S.traits.imposter&&(S.awards.mvp||S.awards.star))removeTrait('imposter','拿到這座獎的那天，你把獎狀拍了照，沒有傳給任何人。');
+  /* 非成就路徑：連續三年考績穩定，或連續兩年把工作量壓在可承受範圍 */
+  if(S.traits.imposter&&(S.goodStreak||0)>=3)removeTrait('imposter','第三年了。你不再需要靠一座獎來確認自己在做什麼。');
+  if(S.traits.burnout&&!S.traits.phoenix&&(S.chillStreak||0)>=2&&S.burn<burnCap()*0.3){
+    S.traits.burnout=false;
+    traitCard('phoenix','你花了兩年把工作量壓在自己能承受的範圍。身體慢慢把那兩次崩潰的記憶還回去了。');
+    for(let i=0;i<8;i++)bumpRandom(1);
+  }
   tlNote(got[0],4); board();
 }
 
 /* ---------- 升遷 / 績效改善 ---------- */
 function promoReview(g,cb){
-  if(S.tier>=6||S.tenure<1)return cb();
+  if(S.tier>=6||S.tenure<1||(S.tierYear||0)<1)return cb();   /* 同一年不會連跳兩級 */
   const nx=TIERS[S.tier+1];
   if(ovr()<nx.min-4){ S.noPromo++; return stuckCheck(cb); }
-  let p=8+(ovr()-nx.min)*2.6+({S:26,A:13,B:2,C:-12,D:-25})[g];
+  let p=5+(ovr()-nx.min)*2.3+({S:24,A:11,B:0,C:-14,D:-28})[g];
   p+=(S.ladder==='MGR'?S.ab.lead:S.ab.craft)/7;
-  p*=(S.co?COT[S.co.type].grow:1)*S.macro.hire;
+  p*=(S.co?COT[S.co.type].grow:1)*S.macro.hire*(S.ageBias||1);
   if(S.traits.teamHeart)p+=18;
   if(S.traits.lone)p-=20;
   if(S.traits.onetrick)p-=12;
@@ -2103,7 +2387,7 @@ function promoReview(g,cb){
     if(g==='S'||g==='A')card('','升遷評議',`你的名字進了名單，但這次的位置只有一個。<div class="sub">評議通過率 ${Math.round(p)}%　·　連續 ${S.noPromo} 年未晉升</div>`);
     return stuckCheck(cb);
   }
-  S.tier++; S.noPromo=0; S.promoAtCo=(S.promoAtCo||0)+1;
+  S.tier++; S.tierYear=0; S.noPromo=0; S.promoAtCo=(S.promoAtCo||0)+1;
   if(S.traits.stuck)removeTrait('stuck','升遷令發布那天，你想起七年前那個以為自己會一直卡在原地的自己。');
   if(S.traits.imposter)removeTrait('imposter','你不再需要向誰證明什麼了。');
   const doAfter=()=>{
@@ -2116,7 +2400,7 @@ function promoReview(g,cb){
     tlNote('升任 '+title(),5); board(); cb();
   };
   if(S.tier===3&&S.ladder==='—'){
-    card('info','雙軌分岔',`人資找你談下一步：公司的職涯有兩條路，一條往管理，一條往專業。<div class="sub">選擇會影響往後的職稱、升遷評議看重的能力，以及你每天實際在做的事。</div>`);
+    card('info','雙軌分岔',`HR 找你談下一步：公司的職涯有兩條路，一條往管理，一條往專業。<div class="sub">選擇會影響往後的職稱、升遷評議看重的能力，以及你每天實際在做的事。</div>`);
     return choose('你要往哪一條走？',[
       {t:'管理職',main:true,s:'升遷看重領導力｜你的產出將是別人的產出',
         f:()=>{ S.ladder='MGR'; doAfter(); }},
@@ -2129,23 +2413,23 @@ function promoReview(g,cb){
 }
 function stuckCheck(cb){
   if(S.noPromo>=7&&S.tier<=1&&!S.traits.stuck)
-    traitCard('stuck','七年了。你還在做同一件事、坐同一個位置，開會時新人叫你「前輩」，語氣裡有一點同情。');
+    traitCard('stuck','七年了，你還在同一個位置。你有把事情做完，是這間公司沒有替你安排下一格。');
   cb();
 }
 function pipCheck(g,cb){
   if(S.badYears<2)return cb();
   S.badYears=0;
-  card('bad','績效改善計畫',`人資與主管把你約進小會議室，桌上是一份 PIP 文件，寫著三個月的觀察期。<div class="sub">「我們希望你留下來，但現在這個位置的期待，你確實沒有達到。」</div>`);
+  card('bad','績效改善計畫',`人資與主管把你約進小會議室，桌上是一份 PIP 文件，寫著三個月的觀察期。<div class="sub">主管說：我們希望你留下來，但現在這個位置的期待，你確實沒有達到。</div>`);
   const opts=[
     {t:'接受降職，重新站穩',main:true,s:'職級 −1，但保住工作與收入',
-      f:()=>{ if(S.tier>0)S.tier--; S.salary=Math.round(baseSalary());
+      f:()=>{ if(S.tier>0)S.tier--; S.tierYear=0; S.salary=Math.min(S.salary,Math.round(baseSalary()));
         card('','退一步',`你把頭銜交回去，換一個做得動的位置。第一週很難受，第三週就開始有東西做出來了。<div class="sub">現職：${title()}　·　年薪 ${money(S.salary)}</div>`);
         if(!S.traits.imposter)traitCard('imposter','你開始覺得，之前那些成績也許只是運氣。這種念頭一旦長出來，很難拔掉。');
         tlNote('降職',3); board(); cb(); }},
-    {t:'拒絕降職，賭下一年',warn:true,s:'留在原位｜若明年仍未達標將永久留下污點',
-      f:()=>{ S.refused=true; card('','我還可以',`你在會議室裡說了「再給我一年」。走出來的時候，你知道所有人都在看。`); cb(); }},
+    {t:'拒絕降職，賭下一年',warn:true,s:'留在原位｜若明年仍未達標，將影響後續升遷與跳槽條件',
+      f:()=>{ S.refused=true; S.refusedYear=S.year; card('','我還可以',`你在會議室裡說了「再給我一年」。走出來的時候，你知道所有人都在看。`); cb(); }},
     {t:'主動離職',s:'進入待業期，重新找一個適合的位置',
-      f:()=>{ leaveJob('quit'); S.stage='GAP'; card('info','離開',`你選擇了自己走。收拾東西那天，沒有歡送會，但你心裡意外地平靜。`); cb(); }}
+      f:()=>{ leaveJob('quit'); S.stage='GAP'; card('info','離開',`你選擇了自己走。收拾東西那天沒有歡送會，你自己把門禁卡放在櫃台。`); cb(); }}
   ];
   choose('你的選擇？',opts);
 }
@@ -2156,9 +2440,12 @@ function companyRisk(g,cb){
   const t=COT[S.co.type];
   const layP=t.risk*100*S.macro.lay*((g==='C'||g==='D')?1.9:0.6);
   if(chance(layP)){
-    const sev=Math.round(S.salary*0.32);
+    /* 依《勞工退休金條例》§12：每滿一年 0.5 個月，上限 6 個月 */
+    const sevMon=Math.min(6,Math.max(0.5,S.tenure*0.5));
+    const sev=Math.round(S.salary/12*sevMon);
+    const notice=S.tenure>=3?30:S.tenure>=1?20:10;
     S.wealth+=sev;
-    card('bad','組織精簡',`一封標題只有「重要通知」的會議邀請。十五分鐘後，你的門禁卡就刷不進去了。<div class="sub">資遣費 <b class="hl">${money(sev)}</b>　·　「這跟你的表現無關」——他們每個人都這樣說。</div>`);
+    card('bad','組織精簡',`一封標題只有「重要通知」的會議邀請。公司給了 ${notice} 天預告期，你在那之後交回門禁卡。<div class="sub">年資 ${S.tenure} 年　·　資遣費 <b class="hl">${money(sev)}</b>（${sevMon} 個月）　·　記得請公司開非自願離職證明書，後面申請失業給付會用到。</div>`);
     leaveJob('layoff'); S.stage='GAP'; tlNote('被資遣',4); board(); return cb();
   }
   if(chance(6)){
@@ -2168,10 +2455,10 @@ function companyRisk(g,cb){
     return choose('你要留下來嗎？',[
       {t:'留任，領留才獎金',main:true,s:`+${money(bonus)}，但文化將完全改變`,
         f:()=>{ S.wealth+=bonus; S.co.type=pick(['UNI','FOR','CORP']); S.co.acquired=true;
-          addBurn(8); card('','留下來的人',`半年後，會議語言換了、流程換了、當初一起做事的人走了一半。你還在。<div class="sub">留才獎金 +${money(bonus)}　·　心力 <b class="dn">+8</b></div>`); board(); cb(); }},
+          addBurn(8); card('','留下來的人',`半年後，會議語言換了、流程換了、當初一起做事的人走了一半。你還在。<div class="sub">留才獎金 +${money(bonus)}　·　倦怠 <b class="dn">+8</b></div>`); board(); cb(); }},
       {t:'拿資遣，趁機換跑道',s:'進入待業期，但市場上這個時機不差',
         f:()=>{ S.wealth+=Math.round(S.salary*0.3); leaveJob('mna'); S.stage='GAP';
-          card('','走人',`你在整合會議結束後就寄出了信。有些船，是要在沉之前下的。`); board(); cb(); }}
+          card('','走人',`你在整合會議結束後就寄出了信。人資回得比你預期的快。`); board(); cb(); }}
     ]);
   }
   if(S.co.type==='SEED'&&chance(t.risk*100*S.macro.lay*0.55)){
@@ -2180,7 +2467,7 @@ function companyRisk(g,cb){
   }
   if(chance(9)){
     const kinds=[
-      ['換了新主管','新老闆第一天就找每個人聊三十分鐘。他問的問題跟前一任完全不同。',[['comm',1]]],
+      ['換了新主管','新主管第一天就找每個人聊三十分鐘，問的問題跟前一任完全不同。',[['comm',1]]],
       ['部門重組','你的團隊被拆成兩半，一半跟你走，一半去了另一個組。',[['lead',1]]],
       ['預算凍結','年度計畫砍掉三分之一，你得決定哪些事今年不做了。',[['exec',1]]]
     ];
@@ -2211,14 +2498,18 @@ function makeOffer(tierWanted,mult){
   const tier=clamp(tierWanted,0,6);
   const saved={t:S.tier,c:S.co};
   S.tier=tier; S.co={type,name};
-  const sal=Math.round(baseSalary()*mult);
+  /* 原本只看目標職級的 baseSalary，完全不參考玩家已累積的實際年薪
+     → 標「升一級」的 offer 有 76% 是減薪；但也不能無上界，否則跳槽變成複利機器 */
+  const bs=baseSalary();
+  const anchor=Math.max(bs,Math.min(S.salary||0,Math.round(bs*1.22)));
+  const sal=Math.round(anchor*mult);
   S.tier=saved.t; S.co=saved.c;
   return {type,name,tier,sal,mult};
 }
 function headhunt(g,cb){
   if(!S.co)return cb();
   let p=7+S.ab.net/5+({S:16,A:7,B:0,C:-3,D:-6})[g];
-  p*=S.macro.hire; if(S.traits.kol)p*=2; if(S.traits.drifter)p*=0.65; if(S.traits.lone)p*=0.75;
+  p*=S.macro.hire*(S.ageBias||1); if(S.traits.kol)p*=2; if(S.traits.drifter)p*=0.65; if(S.traits.lone)p*=0.75;
   if(S.tenure<1)p*=0.5;
   if(!chance(clamp(p,1,72)))return cb();
   const nx=TIERS[Math.min(6,S.tier+1)];
@@ -2226,25 +2517,25 @@ function headhunt(g,cb){
   const n=ri(2,3), offers=[];
   for(let i=0;i<n;i++){
     const up=canUp&&chance(45);
-    let m=(1.08+R()*0.30)*(S.traits.kol?1.15:1)*(S.traits.drifter?0.85:1)*(S.macro.sal);
+    let m=(1.12+R()*0.30)*(S.traits.kol?1.15:1)*(S.traits.drifter?0.85:1)*(S.macro.sal);
     offers.push(makeOffer(up?S.tier+1:S.tier,m));
   }
   card('info','獵頭來信',`一封 LinkedIn 訊息躺在收件匣：「不知道您目前是否方便聊聊？」<div class="sub">你其實沒有在找工作。但看一眼，不算背叛。</div>`);
   const opts=offers.map(o=>({
     t:`跳槽 · ${o.name}`,
-    gold:o.sal>S.salary*1.25,
+    gold:o.sal>S.salary*1.18,
     s:`${COT[o.type].n}　·　${TIERS[o.tier].n}${o.tier>S.tier?'（升一級）':''}　·　年薪 ${money(o.sal)}（${o.sal>=S.salary?'+':''}${Math.round((o.sal/S.salary-1)*100)}%）`,
     f:()=>{
       leaveJob('quit'); S.hops++;
-      S.co={type:o.type,name:o.name}; S.tier=o.tier; S.tenure=0; S.salary=o.sal; S.badYears=0;
+      S.co={type:o.type,name:o.name}; S.tier=o.tier; S.tenure=0; S.tierYear=0; S.salary=o.sal; S.badYears=0;
       card('good','換了一個地方',`到職第一天，你重新學了一次印表機怎麼用、午餐要去哪買、以及這裡的人怎麼開會。<div class="sub">${o.name}　·　${title()}　·　年薪 ${money(o.sal)}</div>`);
       tlNote('跳槽 '+o.name,4); board(); cb();
     }}));
-  opts.push({t:'留任，並跟主管談談',main:true,s:'60% 機率換到留才加薪',
-    f:()=>{ if(chance(60)){ const ns=Math.round(S.salary*1.12); card('good','留才加薪',`你把外面的數字放在桌上，沒有威脅的意思，只是誠實。三天後 HR 寄來新的聘書。<div class="sub">年薪 ${money(S.salary)} → <b class="hl">${money(ns)}</b></div>`); S.salary=ns; }
+  opts.push({t:'留任，並跟主管談談',main:true,s:'60% 機率換到留任加薪',
+    f:()=>{ if(chance(60)){ const ns=Math.round(S.salary*1.12); card('good','留任加薪',`你把外面的數字放在桌上，沒有威脅的意思，只是誠實。三天後 HR 寄來新的聘書。<div class="sub">年薪 ${money(S.salary)} → <b class="hl">${money(ns)}</b></div>`); S.salary=ns; }
       else card('','沒有下文',`主管說「我幫你爭取看看」，然後這件事就沒有下文了。你把那封信留在收件匣裡。`);
       board(); cb(); }});
-  opts.push({t:'不讀不回',s:'現在這裡還有沒做完的事',f:()=>{ card('','留下','你把訊息滑掉了。有些階段，穩定本身就是一種策略。'); cb(); }});
+  opts.push({t:'不讀不回',s:'現在這裡還有沒做完的事',f:()=>{ card('','留下','你把訊息滑掉了。手上那個專案還有兩個月才收。'); cb(); }});
   choose('桌上有幾個選項',opts);
 }
 
@@ -2259,7 +2550,7 @@ function jobSearch(cb){
     S.gapYears++;
     const drop=S.gapYears>=2&&S.tier>0;
     if(drop)S.tier--;
-    card('bad','沒有結果的一年',`投了六十幾封，回覆的有九封，進到最後一關的有兩間。然後就沒有了。<div class="sub">${drop?`市場評價下修：職級調整為 ${TIER().n}　·　`:''}資產 ${money(S.wealth)}　·　「你開始懷疑問題是不是出在自己身上。」</div>`);
+    card('bad','沒有結果的一年',`投了六十幾封，回覆的有九封，進到最後一關的有兩間。然後就沒有了。<div class="sub">${drop?`市場評價下修：職級調整為 ${TIER().n}　·　`:''}資產 ${money(S.wealth)}　·　景氣、職缺數與履歷比對規則都在影響結果，這一年的沉默不等於你的價值。</div>`);
     addBurn(-6); S.wealth=Math.max(0,S.wealth-Math.round(60*(1+S.kids*0.4)));
     addAb('grit',1);
     board(); return cb();
@@ -2270,7 +2561,7 @@ function jobSearch(cb){
   card('good','有回音了',`${n} 間公司走到了最後一關。<div class="sub">待業 ${S.gapYears?S.gapYears+' 年　·　':''}目前綜合評價 ${ovr()}</div>`);
   const opts=offers.map(o=>({t:`入職 · ${o.name}`,main:o===offers[0],
     s:`${COT[o.type].n}　·　${TIERS[o.tier].n}　·　年薪 ${money(o.sal)}`,
-    f:()=>{ S.co={type:o.type,name:o.name}; S.tier=o.tier; S.tenure=0; S.salary=o.sal;
+    f:()=>{ S.co={type:o.type,name:o.name}; S.tier=o.tier; S.tenure=0; S.tierYear=0; S.salary=o.sal;
       S.stage='WORK'; S.gapYears=0; S.badYears=0;
       card('good','重新開始',`到職通知寄來的那天下午，你把履歷檔案關掉，去樓下買了一杯很貴的咖啡。<div class="sub">${o.name}　·　${title()}　·　年薪 ${money(o.sal)}</div>`);
       tlNote('入職 '+o.name,4); board(); cb(); }}));
@@ -2282,6 +2573,7 @@ function gapEnd(){
   const cost=Math.round(72*(1+S.kids*0.4));
   S.wealth=Math.max(0,S.wealth-cost);
   S.lastGrade='—'; S.salary=0;
+  S.yearPenalty=false; S.quitNow=false;   /* 不讓旗標洩漏到下一個工作年 */
   S.hist.push({y:S.year,age:S.age,co:'待業',t:'—',g:'—',sal:0,impact:0});
   card('','這一年的帳',`沒有收入的一年，生活費支出 <b class="dn">${money(cost)}</b>，剩下 <b class="hl">${money(S.wealth)}</b>。<div class="sub">你開始認真研究，自己的存款能撐幾個月。</div>`);
   board(); next('▸ 進入下一年',()=>advance());
@@ -2289,22 +2581,24 @@ function gapEnd(){
 
 /* ---------- 自由工作 / 進修 ---------- */
 function freeYear(){
-  const gross=Math.round((S.ab.craft*1.15+S.ab.net*0.95+S.ab.comm*0.35)*(0.85+S.macro.sal*0.18)*(S.mode==='sprint'?1.2:S.mode==='chill'?0.75:1));
+  const gross=Math.round((S.ab.craft*1.15+S.ab.net*0.95+S.ab.comm*0.35)*(0.35+S.macro.sal*0.65)*(S.mode==='sprint'?1.2:S.mode==='chill'?0.75:1));
   const inc=Math.round(gross*(S.yearPenalty?0.6:1));
   S.salary=inc;
-  const perf=(ovr()-52)+N0(3); S.lastGrade=gradeOf(perf); S.lastD=perf;
+  /* 原本固定對 52 比，年紀越大越容易滿分（S 級占 56%）*/
+  const bench=48+Math.min(22,(S.age-S.startAge)*0.9);
+  const perf=(ovr()-bench)+N0(3); S.lastGrade=gradeOf(perf);
   const impact=Math.max(8,Math.round(60*(1+perf/18)));
   S.score+=impact;
   bankIncome(inc+S.sideIncome);
   S.hist.push({y:S.year,age:S.age,co:'自由接案',t:'自由工作者',g:S.lastGrade,sal:inc,impact});
   card('','接案年結',`今年接了 ${ri(4,14)} 個案子，其中 ${ri(1,4)} 個是老客戶介紹的。
     <div class="stat-row">
-      <div class="stat"><b>${money(inc).replace(' 萬','萬')}</b><span>年收入</span></div>
+      <div class="stat"><b>${money(inc)}</b><span>年收入</span></div>
       <div class="stat"><b>${gradeHTML(S.lastGrade)}</b><span>市場評價</span></div>
       <div class="stat"><b>${impact}</b><span>影響力分</span></div>
       <div class="stat"><b>${money(S.wealth)}</b><span>資產</span></div>
     </div>
-    <div class="sub">${S.yearPenalty?'今年刻意減量，收入約為平常的 60%。':'收入自由度更高，但風險與緩衝也都要自己準備。'}</div>`);
+    <div class="sub">${S.yearPenalty?'今年刻意減量，收入約為平常的 60%。':'勞健保要自己加保在職業工會，出包時也沒有人可以擋在你前面。'}</div>`);
   S.yearPenalty=false;
   board();
   const q=[];
@@ -2328,6 +2622,7 @@ function studyYear(){
   const cost=ri(60,160);
   S.wealth=Math.max(0,S.wealth-cost);
   S.lastGrade='—'; S.salary=0;
+  S.yearPenalty=false; S.quitNow=false;
   addAb('learn',3); addAb('craft',2);
   if(!S.traits.academy)traitCard('academy','你重新變回學生，而且這次你知道自己為什麼要學。');
   S.hist.push({y:S.year,age:S.age,co:'進修',t:'進修中',g:'—',sal:0,impact:0});
@@ -2353,6 +2648,7 @@ function startFounder(cb){
 }
 function founderYear(){
   const f=S.founder;
+  S.yearPenalty=false; S.quitNow=false;
   const power=ovr()+S.ab.lead*0.25+S.ab.net*0.35;
   let p=clamp(18+(power-70)*1.5+S.macro.hire*10+(S.mode==='sprint'?8:S.mode==='chill'?-8:0),6,80);
   const impact=Math.max(18,Math.round((42+f.phase*42)*(1+(power-70)/45)));
@@ -2369,7 +2665,7 @@ function founderYear(){
     tlNote(['種子輪','A 輪','B 輪','C 輪','後期輪'][Math.min(4,f.phase)]+'募資',5);
   }else if(roll<p+45){
     f.runway-=8;
-    card('','撐著',`營收有成長，但沒有到投資人想看的曲線。跑道剩下大約 <b class="hl">${Math.max(0,f.runway)}</b> 個月。<div class="sub">影響力分 +${impact}　·　你已經很久沒有睡好覺了。</div>`);
+    card('','撐著',`營收有成長，但沒有到投資人想看的曲線。跑道剩約 <b class="hl">${Math.max(0,f.runway)}</b> 個月。<div class="sub">影響力分 +${impact}　·　倦怠 ${Math.round(S.burn/burnCap()*100)}%</div>`);
   }else{
     f.runway-=14;
     addAb('grit',2);
@@ -2385,8 +2681,8 @@ function founderYear(){
       choose('簽字嗎？',[
         {t:'成交，把公司交出去',main:true,gold:true,s:`入袋 ${money(mine)}`,
           f:()=>{ S.wealth+=mine; S.awards.exit=(S.awards.exit||0)+1; S.score+=Math.round(AWARDS.exit.p*(S.awards.exit>1?0.4:1));
-            f.exited=true; traitCard('founder','你把一間公司從一張長桌，做到有人願意付錢買下。這件事沒有人可以從你身上拿走。');
-            card('gold','出場',`交割那天你在律師事務所待了六個小時。走出來的時候，你第一次真正感覺到「結束」這兩個字。<div class="sub">資產 ${money(S.wealth)}</div>`);
+            f.exited=true; traitCard('founder','你把一間公司從一張長桌，做到有人願意付錢買下。');
+            card('gold','出場',`交割那天你在律師事務所待了六個小時。<div class="sub">資產 ${money(S.wealth)}</div>`);
             tlNote('公司成功出場',6);
             afterExit(cb); }},
         {t:'不賣，我們自己走下去',warn:true,s:'放棄現金，賭一個更大的可能',
@@ -2395,9 +2691,11 @@ function founderYear(){
       ]);
     });
   }
-  if(f.runway<=0){
+  {
+    /* 判定搬到執行期：收購成交、不賣加跑道、二次創業之後不該再被這段殺掉 */
     q.push(cb=>{
-      card('bad','公司收掉了',`最後一次全員會只有七個人。你把設備賣掉、把款項結清，最後一個離開辦公室，關燈。<div class="sub">「我不後悔。但我很累。」</div>`);
+      if(S.stage!=='FOUNDER'||!S.founder||S.founder!==f||f.runway>0)return cb();
+      card('bad','公司收掉了',`最後一次全員會只有七個人。你把設備賣掉、把款項結清，最後一個離開辦公室，關燈。<div class="sub">你在共同創辦人的群組裡打了一行：我不後悔，但我很累。</div>`);
       addAb('grit',3); addAb('lead',2); S.score+=260;
       S.stage='GAP'; S.founder=null; S.salary=0; tlNote('創業結束',4);
       board(); cb();
@@ -2414,7 +2712,7 @@ function afterExit(cb){
       f:()=>{ S.founder={name:pick(STARTUP_NAMES).replace('река','貝加爾'),phase:1,runway:ri(20,34),raised:0,exited:false};
         S.salary=ri(90,160); card('gold','再來一次',`第二次開始，比第一次冷靜，也比第一次孤獨。`); cb(); }},
     {t:'回到大公司當高階主管',s:'把經驗換成一個位置',
-      f:()=>{ S.stage='WORK'; S.founder=null; S.tier=clamp(Math.max(S.tier,4),0,6); S.ladder='MGR';
+      f:()=>{ S.stage='WORK'; S.founder=null; S.co=null; S.tier=clamp(Math.max(S.tier,4),0,6); S.ladder='MGR';
         const o=makeOffer(S.tier,1.15); S.co={type:o.type,name:o.name}; S.tenure=0; S.salary=o.sal;
         card('good','回到組織',`${o.name} 給了你一個位置與一支團隊。<div class="sub">${title()}　·　年薪 ${money(S.salary)}</div>`); cb(); }}
   ]);
@@ -2424,23 +2722,30 @@ function afterExit(cb){
 function advance(){
   if(S.done)return;
   /* 特質檢查 */
-  if(S.co&&S.tenure>=10&&(S.promoAtCo||0)>=1&&!S.traits.veteran)
-    traitCard('veteran','十年了。新人入職訓練的簡報裡有你的照片，你自己都忘了那是什麼時候拍的。');
+  if(S.co&&S.tenure>=12&&(S.promoAtCo||0)>=2&&!S.traits.veteran)
+    traitCard('veteran','十二年了。新人入職訓練的簡報裡有你的照片，你自己都忘了那是什麼時候拍的。');
   const g=toolGap();
   if(g.gap>=24&&g.top>=62&&!S.traits.onetrick)
     traitCard('onetrick',`你在「${ABL[g.k]}」上遠遠超過其他面向，市場開始只用一種方式看你。`);
-  else if(S.traits.onetrick&&g.gap<18)removeTrait('onetrick','你補上了缺的那一塊。現在別人終於看得到你的全貌。');
-  if(S.refused){
+  else if(S.traits.onetrick&&g.gap<18)removeTrait('onetrick','你補上了缺的那一塊。開始有人找你談跟你本職沒直接關係的事。');
+  if(S.refused&&S.year>(S.refusedYear||0)){
     S.refused=false;
     if(S.lastGrade==='C'||S.lastGrade==='D'){
-      if(!S.traits.freeloader)traitCard('freeloader','你賭的那一年沒有打回來。這件事在公司裡沒有人明講，但每個人都記得。');
+      if(!S.traits.freeloader)traitCard('freeloader','你賭的那一年沒有做出成績。公司裡沒有人明講，但你能感覺到會議上被交付的事情變少了。');
     }else card('good','賭贏了','你用一年的成績把質疑堵了回去。走廊上的視線，變回了普通的視線。');
   }
   S.peakTier=Math.max(S.peakTier,S.tier);
+  S.tierYear=(S.tierYear||0)+1;
   S.year++; S.age++;
+  saveGame();
   if(S.stage==='WORK')S.tenure++;
-  if(S.stage==='GAP')S.gapYears=S.gapYears;
   startYear();
+}
+/* 能見度：影響力為主，但你最強的那項專長也會替你說話 */
+function visibility(){
+  const w=TK().w;
+  let top=AB[0]; AB.forEach(k=>{ if(w[k]>w[top])top=k; });
+  return Math.round(S.ab.net*0.6+S.ab[top]*0.4);
 }
 function toolGap(){
   const core=['craft','exec','comm','lead','net'];
@@ -2453,11 +2758,11 @@ function toolGap(){
    結算
    ========================================================= */
 const RANKS=[
-  {k:'LEGEND',n:'產業傳奇',en:'LEGEND',min:11000,d:'你不只把自己的職涯走完，你順手改變了很多人的路徑。'},
-  {k:'ICON',n:'產業標竿',en:'ICON',min:9000,d:'這個領域在談最佳實踐時，會引用你做過的事。'},
-  {k:'EXCEL',n:'卓越工作者',en:'EXCELLENT',min:6300,d:'你長期穩定地做出高於期待的成果，並且帶起了一群人。'},
-  {k:'SOLID',n:'可靠的中堅',en:'SOLID',min:4200,d:'每個組織都需要你這樣的人。少了你，很多事會安靜地垮掉。'},
-  {k:'CRAFT',n:'一步一腳印',en:'STEADY',min:2300,d:'沒有捷徑，也沒有奇蹟。你就是每天把事情做完的那個人。'},
+  {k:'LEGEND',n:'產業傳奇',en:'LEGEND',min:16000,d:'後來進這個行業的人，有一批是看你做過的東西入門的。'},
+  {k:'ICON',n:'產業標竿',en:'ICON',min:13000,d:'這個領域在討論怎麼做才對的時候，會引用你做過的事。'},
+  {k:'EXCEL',n:'卓越工作者',en:'EXCELLENT',min:9500,d:'你長期穩定地做出高於期待的成果，而且做完會留下別人接得下去的東西。'},
+  {k:'SOLID',n:'可靠的中堅',en:'SOLID',min:6500,d:'每個組織都需要你這樣的人。少了你，很多事會安靜地垮掉。'},
+  {k:'CRAFT',n:'一步一腳印',en:'STEADY',min:3800,d:'你就是每天把事情做完的那個人。接手你位置的人會發現東西都在該在的地方。'},
   {k:'REAL',n:'平凡而真實',en:'ORDINARY',min:0,d:'你的職涯像大多數人的職涯：有卡住的時候，也有撐過去的時候。'}
 ];
 const SECOND_LIFE=[
@@ -2466,14 +2771,18 @@ const SECOND_LIFE=[
   '你去考了教師資格，現在在高職教數位課程。學生問「老師你以前在哪上班」的時候，你講得很輕描淡寫。',
   '你成了獨立接案者，一年只接四個案子，其他時間在山上。',
   '你回家幫忙家裡的生意，把老店的訂單系統整個數位化，營業額三年翻了一倍。',
-  '你加入了一個社會創新組織，薪水少了一半，但每天起床都知道自己為什麼要出門。',
+  '你加入了一個社會創新組織，薪水少了一半，行事曆上第一次沒有跟你無關的會議。',
   '你去唸了完全不相干的第二個學位。同學平均比你小十歲，你是最認真的那一個。',
   '你花了兩年環島加打工換宿，回來以後開了一個頻道，講的是「離開之後」。'
 ];
 function finalScore(){
-  let sc=Math.round(S.score);
-  sc+=Math.round((S.totalIncome||0)/26);
+  /* 依 65 歲前的「可用年數」正規化逐年累積的部分，讓起手年齡不影響評價。
+     用可用年數而非實際年數：提前退休的人仍然少賺、少分數。 */
+  const norm=43/Math.max(1,65-S.startAge);
+  let sc=Math.round(S.score*norm);
+  sc+=Math.round((S.totalIncome||0)/26*norm);
   sc+=S.peakTier*260;
+  sc+=Math.round((S.equity||0)/40);   /* 選對公司類型換股權，要有回報 */
   if(S.traits.veteran)sc+=260;
   if(S.traits.founder)sc+=420;
   if(S.traits.prodigy)sc+=120;
@@ -2486,7 +2795,7 @@ function finalScore(){
 }
 function endGame(reason){
   if(S.done)return;
-  S.done=true; stepQ=[]; actClear();
+  S.done=true; stepQ=[]; actClear(); clearSave();
   const sc=finalScore();
   const rk=RANKS.find(r=>sc>=r.min);
   if(rk.k==='LEGEND'&&sc>=RANKS[0].min*1.2)traitCard('legend','你的名字成了一個形容詞。');
@@ -2495,24 +2804,25 @@ function endGame(reason){
   const assets=Math.round(S.wealth+S.equity);
   const awardList=Object.keys(S.awards).filter(k=>S.awards[k]).map(k=>`${AWARDS[k].n}${S.awards[k]>1?' ×'+S.awards[k]:''}`);
   const traitList=Object.keys(S.traits).filter(k=>S.traits[k]);
-  const early=S.age<38;
-  const peakTitle=(S.traits.founder&&S.peakTier<3)?'共同創辦人':(S.ladder==='IC'?TK().ic:TK().mgr)[S.peakTier];
+  const early=S.age<65;   /* 非屆齡退休的結局都顯示 */
+  const everFree=S.stage==='FREE'||S.jobs.some(j=>j.kind==='freelance'||j.kind==='consulting');
+  const peakTitle=(S.traits.founder&&S.peakTier<3)?'共同創辦人':(S.peakTier===0&&everFree)?'自由工作者':(S.ladder==='IC'?TK().ic:TK().mgr)[S.peakTier];
   divider(`職涯結算 · ${S.startAge}–${S.age} 歲`);
   const box=document.createElement('div');
   box.className='final glass';
   box.innerHTML=`
-    <div class="rank-sub">CAREER VERDICT　·　${rk.en}</div>
+    <div class="rank-sub">CAREER SUMMARY　·　${rk.en}</div>
     <div class="rank">${rk.n}</div>
     <div class="kv">
       <div><b>${sc.toLocaleString()}</b><span>職涯評價分</span></div>
       <div><b>${yrs}</b><span>工作年數</span></div>
-      <div><b>${S.traits.founder&&S.peakTier<3?'創辦人':TIERS[S.peakTier].n}</b><span>最高職級</span></div>
+      <div><b>${S.traits.founder&&S.peakTier<3?'創辦人':TIERS[S.peakTier].n}</b><span>最高身分</span></div>
       <div><b>${money(S.peakSal||0)}</b><span>最高年薪</span></div>
       <div><b>${money(total)}</b><span>生涯總收入</span></div>
       <div><b>${money(assets)}</b><span>最終資產</span></div>
     </div>
     <div class="verdict">
-      <b>${S.name}</b>，${TK().n}，${peakTitle}。<br>
+      <b>${esc(S.name)}</b>，${TK().n}，${peakTitle}。<br>
       ${reason}<br><br>
       ${rk.d}<br><br>
       ${S.jobs.length||S.co?`你一共待過 <b class="hl">${S.jobs.length+(S.co?1:0)}</b> 間公司${S.jobs.length?`（${S.jobs.slice(0,6).map(j=>j.name).join('、')}${S.jobs.length>6?'⋯':''}${S.co?'、'+S.co.name:''}）`:''}，`:''}
@@ -2520,22 +2830,43 @@ function endGame(reason){
       ${awardList.length?`<br><br>生涯榮譽：<b class="hl">${awardList.join('、')}</b>。`:''}
       ${traitList.length?`<br>職涯標籤：${traitList.map(k=>`<span class="tag ${TR[k].tone}">${TR[k].n}</span>`).join(' ')}`:''}
       ${early?`<br><br><b>離開之後</b><br>${pick(SECOND_LIFE)}`:''}
-      <br><br><span style="color:var(--dim)">離開職場的人生，也是人生。${S.name}，辛苦了。</span>
+      <br><br><span style="color:var(--dim)">${esc(S.name)}，辛苦了。</span>
     </div>`;
   logTarget().appendChild(box);
-  setTimeout(()=>{ const y=box.getBoundingClientRect().top+window.scrollY-200; window.scrollTo({top:y,behavior:'smooth'}); },240);
-  const hist=S.hist.filter(h=>h.g!=='—').slice(-30);
+  setTimeout(()=>{
+    const pad=parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)||240;
+    const y=box.getBoundingClientRect().top+window.scrollY-pad-12;
+    window.scrollTo({top:y,behavior:SCROLL_B});
+  },240);
+  const hist=S.hist.slice(-40);
   if(hist.length){
     const t=document.createElement('div');
     t.className='card glass'; t.style.marginTop='12px';
     t.innerHTML=`<h3><span class="dot"></span>逐年紀錄</h3>
       <div style="max-height:280px;overflow:auto;margin-top:8px">
-      ${S.hist.map(h=>`<div class="mrow"><span>${h.y}　${h.age}歲　${h.co}</span><span style="color:var(--ink)">${h.t}　${h.g!=='—'?gradeHTML(h.g):'—'}　${h.sal?money(h.sal):'—'}</span></div>`).join('')}
+      ${hist.map(h=>`<div class="mrow"><span>${h.y}　${h.age} 歲　${h.co}</span><span style="color:var(--ink)">${h.t}　${h.g!=='—'?gradeHTML(h.g):'—'}　${h.sal?money(h.sal):'—'}</span></div>`).join('')}
       </div>`;
     logTarget().appendChild(t);
   }
+  const shareText=`我在 Yourator 職場人生模擬器活了一遍：\n`+
+    `${TK().n}｜${peakTitle}｜${rk.n}\n`+
+    `職涯評價分 ${sc.toLocaleString()}　·　最高年薪 ${money(S.peakSal||0)}　·　工作 ${yrs} 年\n`+
+    `種子碼 ${S.seed}`;
   choose('',[
-    {t:'▸ 再活一次（換一組種子）',main:true,f:()=>location.reload()},
+    {t:'▸ 分享我的結局',gold:true,s:'把評價、職稱與種子碼複製成一段文字',f:()=>{
+      const url=location.href.split('#')[0];
+      const full=shareText+'\n'+url;
+      const done=m=>{ card('','已準備好',m); next('▸ 回到結算',()=>{}); };
+      if(navigator.share){
+        navigator.share({title:'Yourator 職場人生模擬器',text:shareText,url:url})
+          .then(()=>done('已開啟分享。')).catch(()=>done('取消了分享。'));
+      }else if(navigator.clipboard){
+        navigator.clipboard.writeText(full)
+          .then(()=>done('結局已複製到剪貼簿，可以直接貼出去。'))
+          .catch(()=>done('這個瀏覽器不允許自動複製，請手動選取上面的結算卡。'));
+      }else done('這個瀏覽器不支援自動複製，請手動選取上面的結算卡。');
+    }},
+    {t:'▸ 再活一次（換一組種子）',main:true,f:()=>{ clearSave(); location.reload(); }},
     {t:'▸ 用同一組種子重來',s:'同樣的天賦，不同的選擇',f:()=>{ const q=new URLSearchParams({seed:S.seed,t:S.track,b:S.bg,n:S.name}); location.href=location.pathname+'?'+q.toString(); }}
   ]);
   board(); scrollBottom();
@@ -2549,34 +2880,45 @@ function abModal(){
   const rows=AB.map(k=>`<div class="ab${S.ab[k]>=S.pot[k]?' cap':''}"><div class="t"><span>${ABL[k]}　<i style="font-style:normal;opacity:.55;font-size:10.5px">${ABD[k]}</i></span><b>${S.ab[k]}<i style="font-style:normal;color:var(--dim);font-weight:400;font-size:10.5px"> /${S.pot[k]}</i></b></div><div class="track"><i style="width:${S.ab[k]}%"></i><u style="left:calc(${S.pot[k]}% - 1px)"></u></div></div>`).join('');
   const tr=Object.keys(S.traits).filter(k=>S.traits[k]);
   modal(`<h3>能力與特質</h3>
+    <svg id="radar-m" role="img" aria-label="能力雷達圖" viewBox="0 0 230 196"
+         style="display:block;margin:2px auto 10px;width:100%;max-width:262px;height:auto"></svg>
     <div class="mrow"><span>綜合評價</span><b class="mono">${ovr()}</b></div>
     <div class="mrow"><span>職涯軌道</span><span style="color:var(--ink)">${TK().n}　${title()}</span></div>
     <div class="mrow"><span>資產／股權</span><span style="color:var(--ink)">${money(S.wealth)}　·　${money(S.equity)}</span></div>
     <div style="margin:14px 0 4px">${rows}</div>
     ${tr.length?`<h3 style="margin-top:16px">隱藏特質</h3>${tr.map(k=>`<div class="trait-row"><span class="tag ${TR[k].tone}">${TR[k].n}</span><span class="d">${TR[k].fx}</span></div>`).join('')}`:''}
     <button class="mbtn" onclick="modalClose()">關閉</button>`);
+  radar('radar-m');
 }
 function menuModal(){
   modal(`<h3>選單</h3>
-    <div class="mrow"><span>種子碼</span><b class="mono">${S.seed}</b></div>
+    <div class="mrow"><span>種子碼</span><b class="mono" id="mm-seed"></b></div>
     <div class="mrow"><span>景氣</span><span style="color:var(--ink)">${S.macro.n}</span></div>
     <div class="mrow"><span>年資</span><span style="color:var(--ink)">${S.age-S.startAge} 年　·　現職 ${S.tenure} 年</span></div>
     <div class="mrow"><span>跳槽次數</span><span style="color:var(--ink)">${S.hops}</span></div>
     <button class="mbtn" onclick="abModal()">查看能力與特質</button>
     <button class="mbtn" onclick="helpModal()">玩法說明</button>
-    <button class="mbtn" onclick="navigator.clipboard&&navigator.clipboard.writeText('${S.seed}');this.textContent='已複製種子碼'">複製種子碼</button>
-    <button class="mbtn" onclick="if(confirm('確定要重新開始這一生嗎？'))location.href=location.pathname">重新開始</button>
+    <button class="mbtn" id="mm-copy">複製種子碼</button>
+    <button class="mbtn" onclick="if(confirm('確定要重新開始這一生嗎？這一局的進度會被刪掉。')){clearSave();location.href=location.pathname;}">重新開始</button>
     <button class="mbtn" onclick="modalClose()">關閉</button>`);
+  $('mm-seed').textContent=S.seed;
+  $('mm-copy').onclick=e=>{
+    const b=e.currentTarget;
+    if(!navigator.clipboard){ b.textContent='此瀏覽器不支援自動複製'; return; }
+    navigator.clipboard.writeText(S.seed)
+      .then(()=>b.textContent='已複製種子碼')
+      .catch(()=>b.textContent='複製失敗，請手動選取上方種子碼');
+  };
 }
 function helpModal(){
   modal(`<h3>玩法說明</h3>
     <p style="font-size:13px;color:#dbe3f5;line-height:1.85">
     <b>每一年三個階段</b><br>
-    ① <b>年初</b>：擲 3–6 顆骰，自己決定投資在哪一項能力。能力有隱藏的「潛力天花板」，超過之後每一級成本 ×3。<br>
-    ② <b>年中</b>：抽職場事件卡與生活事件，三種應對——穩健（成功率 +20%、效果減半）、照常、全力一搏（成功率 −15%、效果 ×1.5）。<br>
+    ① <b>年初</b>：擲 3–6 顆骰（進修、特質與休養狀態會增減），自己決定投資在哪一項能力。能力有隱藏的「潛力天花板」，超過之後每一級成本 ×3。<br>
+    ② <b>年中</b>：抽職場事件卡與生活事件，三種應對：穩健（成功率 +8%、效果減半）、照常、全力一搏（成功率 −4%、效果 ×1.5）。<br>
     ③ <b>年末</b>：依目前身分結算成果；組織內看考績、薪資與升遷，自由工作看市場評價與年收入，創業則看營運里程碑。
     </p>
-    <div class="mrow"><span>心力</span><span style="color:var(--ink)">隱形的第二條血條，滿了會觸發職業倦怠</span></div>
+    <div class="mrow"><span>倦怠值</span><span style="color:var(--ink)">隱形的第二條血條，滿格會觸發職業倦怠</span></div>
     <div class="mrow"><span>景氣</span><span style="color:var(--ink)">影響徵才、裁員與薪資行情</span></div>
     <div class="mrow"><span>隱藏特質</span><span style="color:var(--ink)">共 20 種，條件不公開，靠自己摸索</span></div>
     <div class="mrow"><span>種子碼</span><span style="color:var(--ink)">同種子 + 同選擇 = 同一段人生</span></div>
@@ -2584,6 +2926,7 @@ function helpModal(){
     <button class="mbtn" onclick="modalClose()">關閉</button>`);
 }
 document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&$('modal').classList.contains('show')){ modalClose(); e.preventDefault(); return; }
   if(!S||$('modal').classList.contains('show'))return;
   if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
   const n=parseInt(e.key,10);
@@ -2621,7 +2964,9 @@ function polishOrphans(root=document){
    ========================================================= */
 (function boot(){
   const q=new URLSearchParams(location.search);
-  let track=q.get('t')||'ENG', bgk=q.get('b')||'NEW';
+  const has=(o,k)=>k!=null&&Object.prototype.hasOwnProperty.call(o,k);
+  let track=has(TRACKS,q.get('t'))?q.get('t'):'ENG';
+  let bgk=has(BGS,q.get('b'))?q.get('b'):'NEW';
   const pt=$('pick-track'), pb=$('pick-bg');
   pt.innerHTML=Object.keys(TRACKS).map(k=>`<button class="pick${k===track?' sel':''}" data-k="${k}"><b>${TRACKS[k].n}</b><span>${TRACKS[k].d}</span></button>`).join('');
   pb.innerHTML=Object.keys(BGS).map(k=>`<button class="pick${k===bgk?' sel':''}" data-k="${k}"><b>${BGS[k].n}</b><span>${BGS[k].d}${BGS[k].note?'｜'+BGS[k].note:''}</span></button>`).join('');
@@ -2630,15 +2975,40 @@ function polishOrphans(root=document){
     pt.querySelectorAll('.pick').forEach(x=>x.classList.toggle('sel',x===b)); });
   pb.querySelectorAll('.pick').forEach(b=>b.onclick=()=>{ bgk=b.dataset.k; if(navigator.vibrate)navigator.vibrate(8);
     pb.querySelectorAll('.pick').forEach(x=>x.classList.toggle('sel',x===b)); });
-  if(q.get('n'))$('in-name').value=q.get('n');
+  /* 有未完成的存檔就先問要不要接續 */
+  const sv=loadSave();
+  if(sv&&!q.get('seed')){
+    const g=$('gate-in');
+    const box=document.createElement('div');
+    box.className='card glass';
+    box.style.cssText='margin:14px 0 2px;text-align:left';
+    box.innerHTML=`<h3><span class="dot"></span>上次還沒走完</h3>
+      <p class="sub" style="margin-top:0">${esc(sv.S.name)}　·　${TRACKS[sv.S.track].n}　·　${sv.S.year} 年 ${sv.S.age} 歲　·　種子碼 ${esc(sv.S.seed)}</p>
+      <button class="mbtn" id="btn-resume" style="margin-top:8px">接續上次的職涯</button>
+      <button class="mbtn" id="btn-fresh">不要，重新開始</button>`;
+    g.insertBefore(box,g.querySelector('label.fl'));
+    $('btn-resume').onclick=()=>{
+      try{
+        S=sv.S; seedState(sv.rng);
+        $('gate').remove();
+        document.body.classList.add('playing');
+        board();
+        card('info','接續上次的職涯',`從 ${S.year} 年（${S.age} 歲）繼續。上一次結束在年度交界，所以這一年會重新開始。`+
+          `<div class="sub">存檔只保留到年度交界，中途離開最多損失一年。</div>`);
+        next('▸ 繼續第 '+(S.age-S.startAge+1)+' 年',()=>startYear());
+      }catch(err){ console.error(err); clearSave(); location.href=location.pathname; }
+    };
+    $('btn-fresh').onclick=()=>{ clearSave(); box.remove(); };
+  }
+  if(q.get('n'))$('in-name').value=String(q.get('n')).slice(0,12);
   if(q.get('seed'))$('in-seed').value=q.get('seed');
   $('btn-start').onclick=()=>{
     if(navigator.vibrate)navigator.vibrate(15);
-    const name=($('in-name').value||'').trim()||'無名氏';
+    const name=(($('in-name').value||'').trim().slice(0,12))||'無名氏';
     const seed=($('in-seed').value||'').trim()||Math.random().toString(36).slice(2,10);
     seedInit(seed);
-    S=newState(name,track,bgk,seed);
-    $('gate').style.display='none';
+    clearSave(); S=newState(name,track,bgk,seed);
+    $('gate').remove();
     document.body.classList.add('playing');
     /* 第一份工作 */
     const o=makeOffer(0,0.92+R()*0.2);
@@ -2649,8 +3019,8 @@ function polishOrphans(root=document){
     card('gold','履歷寄出後的第 34 天',
       `<b class="hl">${o.name}</b>（${COT[o.type].n}）寄來了錄取通知，職稱是 <b>${(TRACKS[track].mgr)[0]}</b>，年薪 <b class="hl">${money(o.sal)}</b>。
        <div class="sub">${BGS[bgk].n}　·　${TRACKS[track].n}　·　種子碼 ${seed}</div>
-       <div class="sub">你的能力天花板已經在出生時被暗中決定了——有一項會很高，有一項注定平庸。你不會看到數字之外的答案，只能從每一年的手感去猜。</div>`);
-    card('',null,`接下來的每一年會有三個階段：<b>年初</b>擲骰決定你把時間投資在哪裡、<b>年中</b>面對職場與生活事件、<b>年末</b>結算績效、薪資與人事異動。<div class="sub">心力（倦怠量表）是隱形的第二條血條。它歸零之前，沒有人會提醒你。</div>`);
+       <div class="sub">每個人的成長曲線不一樣：有些能力你一學就上手，有些要繞比較久。上限不會寫在畫面上，而且它會變。你這幾十年真正投入的地方，會把它改寫。</div>`);
+    card('',null,`接下來的每一年會有三個階段：<b>年初</b>擲骰決定你把時間投資在哪裡、<b>年中</b>面對職場與生活事件、<b>年末</b>結算績效、薪資與人事異動。<div class="sub">倦怠值是隱形的第二條血條。它歸零之前，沒有人會提醒你。</div>`);
     next('▸ 開始第一年',()=>{ S.stage='WORK'; startYear(); });
   };
   $('in-name').addEventListener('keydown',e=>{ if(e.key==='Enter')$('btn-start').click(); });
